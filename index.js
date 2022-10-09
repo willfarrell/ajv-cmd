@@ -2,7 +2,7 @@ import {
   instance as instanceImport,
   compile as compileImport
 } from './compile.js'
-import ftlImport from './ftl.js'
+import ftlImport from 'ajv-ftl-i18n'
 import transpileImport from './transpile.js'
 import validateImport from './validate.js'
 
