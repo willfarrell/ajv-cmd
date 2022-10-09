@@ -1,5 +1,5 @@
 import { stat, readFile, writeFile } from 'node:fs/promises'
-import transpile from 'ajv-ftl-i18n'
+import { transpile } from 'ajv-ftl-i18n'
 
 const fileExists = async (filepath) => {
   const stats = await stat(filepath)
