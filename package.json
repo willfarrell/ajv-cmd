@@ -1,6 +1,6 @@
 {
   "name": "ajv-cmd",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Deref, Validate, Transpile, and Test JSON-Schema (.json) files using ajv",
   "main": "index.js",
   "type": "module",
@@ -12,6 +12,7 @@
     "commands/*.js",
     "index.js",
     "compile.js",
+    "ftl.js",
     "transpile.js",
     "validate.js"
   ],
