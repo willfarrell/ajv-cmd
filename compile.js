@@ -22,7 +22,7 @@ export const instance = (options = {}) => {
   return ajv
 }
 
-export const compile = async (schema, options = {}) => {
+export const compile = (schema, options = {}) => {
   options = { ...defaultOptions, ...options, keywords: [] }
   const ajv = instance(options)
   return ajv.compile(schema)
