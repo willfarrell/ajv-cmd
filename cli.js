@@ -4,6 +4,7 @@ import { Command, Option } from 'commander'
 import validate from './commands/validate.js'
 import deref from './commands/deref.js'
 import transpile from './commands/transpile.js'
+import ftl from './commands/ftl.js'
 import metadata from './package.json' assert { type: 'json' }
 
 const program = new Command()
@@ -124,5 +125,20 @@ program
     )
   )
   .action(deref)
+
+program
+  .command('ftl')
+  .argument('<input>', 'Path to the Fluent file to transpile')
+  .requiredOption(
+    '--locale <locale...>',
+    'What locale(s) to be used. Multiple can be set to allow for fallback. i.e. en-CA'
+  )
+  .addOption(
+    new Option(
+      '-o, --output <output>',
+      'Path to store the resulting JavaScript file. Will be in ESM.'
+    )
+  )
+  .action(ftl)
 
 program.parse()
