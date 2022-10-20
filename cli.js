@@ -1,4 +1,4 @@
-#!/usr/bin/env node --experimental-json-modules --no-warnings
+#!/usr/bin/env -S node --experimental-json-modules --no-warnings
 
 import { Command, Option } from 'commander'
 import validate from './commands/validate.js'

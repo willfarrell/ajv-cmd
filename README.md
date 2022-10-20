@@ -18,14 +18,17 @@ Based off of [ajv-cli](https://ajv.js.org/packages/ajv-cli.html).
 ```bash
 #!/usr/bin/env bash
 
-function ajv {
+function bundle {
+  ajv validate ${1} --valid \
+	--strict true --coerce-types array --all-errors true --use-defaults empty
   ajv transpile ${1} \
 	--strict true --coerce-types array --all-errors true --use-defaults empty \
-	-o ${1/json/js}
+	-o ${1%.json}.js
 }
 
 for file in handlers/*/schema.*.json; do
-  if [ ! -n "$(ajv $file | grep ' is valid')" ]; then
+  if [ ! -n "$(bundle $file | grep ' is valid')" ]; then
+	echo "$file failed"
 	exit 1
   fi
 done
