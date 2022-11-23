@@ -5,7 +5,7 @@ Deref, Validate, Transpile, and Test JSON-Schema (.json) files using ajv.
 ### Setup
 
 ```bash
-$ npm install -D ajv-cmdnpm
+$ npm install -D ajv-cmd
 $ ajv --help
 ```
 
