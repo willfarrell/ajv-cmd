@@ -1,5 +1,5 @@
 import { instance, compile } from './compile.js'
-import spec from 'ajv/dist/refs/json-schema-2020-12/schema.json' assert { type: 'json' }
+//import spec from 'ajv/dist/refs/json-schema-2020-12/schema.json' assert { type: 'json' }
 
 const defaultOptions = {
   allErrors: true // required for `errorMessage`

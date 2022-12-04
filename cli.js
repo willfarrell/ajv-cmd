@@ -1,15 +1,16 @@
-#!/usr/bin/env -S node --experimental-json-modules --no-warnings
+#!/usr/bin/env node
+// #!/usr/bin/env -S node --experimental-json-modules --no-warnings
 
 import { Command, Option } from 'commander'
 import validate from './commands/validate.js'
 import deref from './commands/deref.js'
 import transpile from './commands/transpile.js'
 import ftl from './commands/ftl.js'
-import metadata from './package.json' assert { type: 'json' }
+//import metadata from './package.json' assert { type: 'json' }
 
 const program = new Command()
   .name('ajv')
-  .version(metadata.version)
+  //.version(metadata.version)
   .description(
     'Transpile JSON-Schema (.json) files to JavaScript (.js or .mjs) using ajv'
   )
