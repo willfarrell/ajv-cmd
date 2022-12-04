@@ -1,6 +1,6 @@
 {
   "name": "ajv-cmd",
-  "version": "0.1.10",
+  "version": "0.1.13",
   "description": "Deref, Validate, Transpile, and Test JSON-Schema (.json) files using ajv",
   "main": "index.js",
   "type": "module",
@@ -44,7 +44,7 @@
     "ajv-i18n": "4.2.0",
     "ajv-keywords": "5.1.0",
     "commander": "9.4.1",
-    "esbuild": "0.15.16",
+    "esbuild": "0.15.17",
     "fast-uri": "2.1.0",
     "json-schema-ref-parser": "9.0.9"
   }

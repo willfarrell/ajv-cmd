@@ -1,10 +1,9 @@
-import { default as Ajv } from 'ajv/dist/2020.js'
+import Ajv from 'ajv/dist/2020.js'
 import ajvFormats from 'ajv-formats'
 import ajvFormatsDraft2019 from 'ajv-formats-draft2019'
 import ajvKeywords from 'ajv-keywords'
 import ajvErrors from 'ajv-errors'
 import uriResolver from 'fast-uri'
-import { build } from 'esbuild'
 
 const defaultOptions = {
   uriResolver // faster than default
@@ -18,7 +17,6 @@ export const instance = (options = {}) => {
   ajvFormatsDraft2019(ajv)
   ajvKeywords(ajv)
   ajvErrors(ajv)
-
   return ajv
 }
 
