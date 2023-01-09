@@ -32,7 +32,7 @@ export const transpile = async (schema, options = {}) => {
     platform: 'node',
     format: 'esm',
     bundle: true,
-    minify: false,
+    minify: true,
     legalComments: 'none',
     allowOverwrite: true,
     outfile: file

@@ -1,5 +1,5 @@
 import { stat, readFile, writeFile } from 'node:fs/promises'
-import $RefParser from 'json-schema-ref-parser'
+import $RefParser from '@apidevtools/json-schema-ref-parser'
 
 const fileExists = async (filepath) => {
   const stats = await stat(filepath)

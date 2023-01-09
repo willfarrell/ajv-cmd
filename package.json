@@ -65,7 +65,7 @@
   },
   "scripts": {
     "prepublishOnly": "npm run build",
-    "build": "npm run build:index && npm run build:compile && npm run build:ftl && npm run build:transpile && npm run build:validate && npm run build:formats",
+    "build": "npm run build:index && npm run build:compile && npm run build:ftl && npm run build:transpile && npm run build:validate",
     "build:index": "./node_modules/.bin/esbuild index.js --platform=node --format=cjs  --target=node16 --allow-overwrite --outfile=index.cjs",
     "build:compile": "./node_modules/.bin/esbuild compile.js --platform=node --format=cjs  --target=node16 --allow-overwrite --outfile=compile.cjs",
     "build:ftl": "./node_modules/.bin/esbuild ftl.js --platform=node --format=cjs  --target=node16 --bundle --allow-overwrite --outfile=ftl.cjs",
