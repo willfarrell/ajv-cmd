@@ -1,8 +1,7 @@
 {
   "name": "ajv-cmd",
-  "version": "0.1.13",
+  "version": "0.2.2",
   "description": "Deref, Validate, Transpile, and Test JSON-Schema (.json) files using ajv",
-  "main": "index.js",
   "type": "module",
   "bin": {
     "ajv": "cli.js"
@@ -10,13 +9,78 @@
   "files": [
     "cli.js",
     "commands/*.js",
+    "index.cjs",
     "index.js",
+    "compile.cjs",
     "compile.js",
+    "ftl.cjs",
     "ftl.js",
+    "transpile.cjs",
     "transpile.js",
+    "validate.cjs",
     "validate.js"
   ],
-  "scripts": {},
+  "main": "index.js",
+  "exports": {
+    ".": {
+      "import": {
+        "default": "./index.js"
+      },
+      "require": {
+        "default": "./index.cjs"
+      }
+    },
+    "./compile": {
+      "import": {
+        "default": "./compile.js"
+      },
+      "require": {
+        "default": "./compile.cjs"
+      }
+    },
+    "./ftl": {
+      "import": {
+        "default": "./ftl.js"
+      },
+      "require": {
+        "default": "./ftl.cjs"
+      }
+    },
+    "./transpile": {
+      "import": {
+        "default": "./transpile.js"
+      },
+      "require": {
+        "default": "./transpile.cjs"
+      }
+    },
+    "./validate": {
+      "import": {
+        "default": "./validate.js"
+      },
+      "require": {
+        "default": "./validate.cjs"
+      }
+    },
+    "./formats": {
+      "import": {
+        "default": "./formats.js"
+      },
+      "require": {
+        "default": "./formats.cjs"
+      }
+    }
+  },
+  "scripts": {
+    "prepublishOnly": "npm run build",
+    "build": "npm run build:index && npm run build:compile && npm run build:ftl && npm run build:transpile && npm run build:validate && npm run build:formats",
+    "build:index": "./node_modules/.bin/esbuild index.js --platform=node --format=cjs  --target=node16 --allow-overwrite --outfile=index.cjs",
+    "build:compile": "./node_modules/.bin/esbuild compile.js --platform=node --format=cjs  --target=node16 --allow-overwrite --outfile=compile.cjs",
+    "build:ftl": "./node_modules/.bin/esbuild ftl.js --platform=node --format=cjs  --target=node16 --bundle --allow-overwrite --outfile=ftl.cjs",
+    "build:transpile": "./node_modules/.bin/esbuild transpile.js --platform=node --format=cjs  --target=node16 --allow-overwrite --outfile=transpile.cjs",
+    "build:validate": "./node_modules/.bin/esbuild validate.js --platform=node --format=cjs  --target=node16  --allow-overwrite --outfile=validate.cjs",
+    "build:formats": "./node_modules/.bin/esbuild formats.js --platform=node --format=cjs  --target=node16  --allow-overwrite --bundle --outfile=formats.cjs"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/willfarrell/ajv-cmd.git"
@@ -46,6 +110,6 @@
     "ajv-keywords": "5.1.0",
     "commander": "9.4.1",
     "esbuild": "0.15.17",
-    "fast-uri": "2.1.0",
+    "fast-uri": "2.1.0"
   }
 }
