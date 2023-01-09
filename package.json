@@ -61,14 +61,6 @@
       "require": {
         "default": "./validate.cjs"
       }
-    },
-    "./formats": {
-      "import": {
-        "default": "./formats.js"
-      },
-      "require": {
-        "default": "./formats.cjs"
-      }
     }
   },
   "scripts": {
@@ -78,8 +70,7 @@
     "build:compile": "./node_modules/.bin/esbuild compile.js --platform=node --format=cjs  --target=node16 --allow-overwrite --outfile=compile.cjs",
     "build:ftl": "./node_modules/.bin/esbuild ftl.js --platform=node --format=cjs  --target=node16 --bundle --allow-overwrite --outfile=ftl.cjs",
     "build:transpile": "./node_modules/.bin/esbuild transpile.js --platform=node --format=cjs  --target=node16 --allow-overwrite --outfile=transpile.cjs",
-    "build:validate": "./node_modules/.bin/esbuild validate.js --platform=node --format=cjs  --target=node16  --allow-overwrite --outfile=validate.cjs",
-    "build:formats": "./node_modules/.bin/esbuild formats.js --platform=node --format=cjs  --target=node16  --allow-overwrite --bundle --outfile=formats.cjs"
+    "build:validate": "./node_modules/.bin/esbuild validate.js --platform=node --format=cjs  --target=node16  --allow-overwrite --outfile=validate.cjs"
   },
   "repository": {
     "type": "git",
@@ -101,15 +92,15 @@
   "homepage": "https://github.com/willfarrell/ajv-cmd",
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^9.1.0",
-    "ajv": "8.11.2",
+    "ajv": "8.12.0",
     "ajv-errors": "3.0.0",
     "ajv-formats": "2.1.1",
     "ajv-formats-draft2019": "1.6.1",
     "ajv-ftl-i18n": "0.0.2",
     "ajv-i18n": "4.2.0",
     "ajv-keywords": "5.1.0",
-    "commander": "9.4.1",
-    "esbuild": "0.15.17",
-    "fast-uri": "2.1.0"
+    "commander": "9.5.0",
+    "esbuild": "0.16.16",
+    "fast-uri": "2.2.0"
   }
 }
