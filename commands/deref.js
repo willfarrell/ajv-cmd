@@ -1,5 +1,5 @@
 import { stat, readFile, writeFile } from 'node:fs/promises'
-import $RefParser from '@apidevtools/json-schema-ref-parser'
+import { dereference } from '@apidevtools/json-schema-ref-parser'
 
 const fileExists = async (filepath) => {
   const stats = await stat(filepath)
@@ -15,14 +15,7 @@ export default async (input, options) => {
     JSON.parse(res)
   )
 
-  const json = await $RefParser.dereference(jsonSchema, {
-    dereference: {
-      excludedPathMatcher: (path) => {
-        console.log(path)
-        return true
-      }
-    }
-  })
+  const json = await dereference(jsonSchema)
 
   if (options.output) {
     await writeFile(options.output, JSON.stringify(json), 'utf8')
