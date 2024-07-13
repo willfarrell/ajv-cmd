@@ -3,11 +3,8 @@ import ajvFormats from 'ajv-formats'
 import ajvFormatsDraft2019 from 'ajv-formats-draft2019'
 import ajvKeywords from 'ajv-keywords'
 import ajvErrors from 'ajv-errors'
-import uriResolver from 'fast-uri'
 
-const defaultOptions = {
-  uriResolver // faster than default
-}
+const defaultOptions = {}
 
 export const instance = (options = {}) => {
   options = { ...defaultOptions, ...options, keywords: [] }
