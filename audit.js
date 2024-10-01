@@ -1,6 +1,9 @@
 // TODO craft into JSON-Schema Spec
 export const audit = (schema, path = []) => {
-  const issues = []
+  let issues = []
+  if (typeof schema !== 'object') {
+    return issues
+  }
   switch (schema.type) {
     case 'array':
       if (!Object.hasOwn(schema, 'maxItems')) {
@@ -22,7 +25,7 @@ export const audit = (schema, path = []) => {
           path: path.join('.')
         })
       } else {
-        issues.concat(audit(schema.items, [...path, 'items']))
+        issues = issues.concat(audit(schema.items, [...path, 'items']))
       }
 
       break
@@ -68,13 +71,13 @@ export const audit = (schema, path = []) => {
           })
         }
       } else if (Object.hasOwn(schema, 'pattern')) {
-        if (schema.pattern.substring(0, 1) !== '^') {
+        if (!checkRegExpStartWith(schema.pattern)) {
           issues.push({
             message: 'String RegExp missing `^` at the start of `pattern`',
             path: path.join('.')
           })
         }
-        if (schema.pattern.substring(-1) !== '$') {
+        if (!checkRegExpEndWith(schema.pattern)) {
           issues.push({
             message: 'String RegExp missing `$` at the end of `pattern`',
             path: path.join('.')
@@ -140,14 +143,14 @@ export const audit = (schema, path = []) => {
         })
       }
       if (Object.hasOwn(schema, 'propertyNames')) {
-        if (schema.propertyNames.pattern.substring(0, 1) !== '^') {
+        if (!checkRegExpStartWith(schema.propertyNames.pattern)) {
           issues.push({
             message:
               'propertyNames RegExp missing `^` at the start of `pattern`',
             path: path.join('.')
           })
         }
-        if (schema.propertyNames.pattern.substring(-1) !== '$') {
+        if (!checkRegExpEndWith(schema.propertyNames.pattern)) {
           issues.push({
             message: 'propertyNames RegExp missing `$` at the end of `pattern`',
             path: path.join('.')
@@ -156,7 +159,7 @@ export const audit = (schema, path = []) => {
       }
       if (Object.hasOwn(schema, 'properties')) {
         for (const property in schema.properties) {
-          issues.concat(
+          issues = issues.concat(
             audit(schema.properties[property], [
               ...path,
               'properties',
@@ -167,19 +170,19 @@ export const audit = (schema, path = []) => {
       }
       if (Object.hasOwn(schema, 'patternProperties')) {
         for (const property in schema.patternProperties) {
-          if (property.substring(0, 1) !== '^') {
+          if (!checkRegExpStartWith(property)) {
             issues.push({
               message: 'RegExp missing `^` at the start of `patternProperties`',
               path: path.join('.')
             })
           }
-          if (property.substring(-1) !== '$') {
+          if (!checkRegExpEndWith(property)) {
             issues.push({
               message: 'RegExp missing `$` at the end of `patternProperties`',
               path: path.join('.')
             })
           }
-          issues.concat(
+          issues = issues.concat(
             audit(schema.patternProperties[property], [
               ...path,
               'patternProperties',
@@ -191,29 +194,48 @@ export const audit = (schema, path = []) => {
 
       break
     default:
-      issues.push({
-        message: 'missing `type`',
-        path: path.join('.')
-      })
+      if (
+        !Object.hasOwn(schema, 'if') &&
+        !Object.hasOwn(schema, 'allOf') &&
+        !Object.hasOwn(schema, 'anyOf') &&
+        !Object.hasOwn(schema, 'oneOf')
+      ) {
+        issues.push({
+          message: 'missing `type`',
+          path: path.join('.')
+        })
+      }
   }
 
   if (Object.hasOwn(schema, 'allOf')) {
     for (let i = 0, l = schema.allOf.length; i < l; i++) {
-      issues.concat(audit(schema.allOf[i], [...path, 'allOf', `[${i}]`]))
+      issues = issues.concat(
+        audit(schema.allOf[i], [...path, 'allOf', `[${i}]`])
+      )
     }
   }
   if (Object.hasOwn(schema, 'anyOf')) {
     for (let i = 0, l = schema.anyOf.length; i < l; i++) {
-      issues.concat(audit(schema.anyOf[i], [...path, 'allOf', `[${i}]`]))
+      issues = issues.concat(
+        audit(schema.anyOf[i], [...path, 'anyOf', `[${i}]`])
+      )
     }
   }
   if (Object.hasOwn(schema, 'oneOf')) {
     for (let i = 0, l = schema.oneOf.length; i < l; i++) {
-      issues.concat(audit(schema.oneOf[i], [...path, 'allOf', `[${i}]`]))
+      issues = issues.concat(
+        audit(schema.oneOf[i], [...path, 'oneOf', `[${i}]`])
+      )
     }
   }
 
   return issues
 }
+
+const checkRegExpStartWith = (pattern) =>
+  pattern.substring(0, 1) === '^' || pattern.substring(0, 2) === '(^'
+const checkRegExpEndWith = (pattern) =>
+  pattern.substring(pattern.length - 1) === '$' ||
+  pattern.substring(pattern.length - 2) === '$)'
 
 export default audit
