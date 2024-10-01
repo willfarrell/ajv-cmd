@@ -4,7 +4,22 @@ export const audit = (schema, path = []) => {
   if (typeof schema !== 'object') {
     return issues
   }
+  if (Array.isArray(schema.type)) {
+    schema.type = schema.type.filter((type) => type !== 'null')
+    if (schema.type.length === 1) {
+      schema.type = schema.type[0]
+    } else {
+      // Has unhandled workaround: anyOf:[{type:"string"},{type:"null"}]
+      issues.push({
+        message: 'Multiple `type`',
+        path: path.join('.')
+      })
+    }
+  }
+
   switch (schema.type) {
+    case 'null':
+      break
     case 'array':
       if (!Object.hasOwn(schema, 'maxItems')) {
         issues.push({
@@ -30,6 +45,76 @@ export const audit = (schema, path = []) => {
 
       break
     case 'integer':
+      if (Object.hasOwn(schema, 'enum')) {
+        if (!schema.enum.length) {
+          issues.push({
+            message: 'Integer missing values in `enum`',
+            path: path.join('.')
+          })
+        }
+      } else {
+        if (
+          !Object.hasOwn(schema, 'minimum') &&
+          !Object.hasOwn(schema, 'exclusiveMinimum')
+        ) {
+          issues.push({
+            message:
+              'Integer missing `minimum` or `exclusiveMinimum`, should not be >= Number.MIN_SAFE_INTEGER (-9007199254740991)',
+            path: path.join('.')
+          })
+        }
+        if (
+          !Object.hasOwn(schema, 'maximum') &&
+          !Object.hasOwn(schema, 'exclusiveMaximum')
+        ) {
+          issues.push({
+            message:
+              'Integer missing `maximum` or `exclusiveMaximum`, should not be <= Number.MAX_SAFE_INTEGER (9007199254740991)',
+            path: path.join('.')
+          })
+        }
+        if (
+          Object.hasOwn(schema, 'minimum') &&
+          schema.minimum < Number.MIN_SAFE_INTEGER
+        ) {
+          issues.push({
+            message:
+              'Integer `minimum` below safe range, should not be < Number.MIN_SAFE_INTEGER (-9007199254740991)',
+            path: path.join('.')
+          })
+        }
+        if (
+          Object.hasOwn(schema, 'exclusiveMinimum') &&
+          schema.exclusiveMinimum <= Number.MIN_SAFE_INTEGER
+        ) {
+          issues.push({
+            message:
+              'Integer `exclusiveMinimum` below safe range, should not be <= Number.MIN_SAFE_INTEGER (-9007199254740991)',
+            path: path.join('.')
+          })
+        }
+        if (
+          Object.hasOwn(schema, 'maximum') &&
+          schema.maximum > Number.MAX_SAFE_INTEGER
+        ) {
+          issues.push({
+            message:
+              'Integer `maximum` above safe range, should not be > Number.MAX_SAFE_INTEGER (9007199254740991)',
+            path: path.join('.')
+          })
+        }
+        if (
+          Object.hasOwn(schema, 'exclusiveMaximum') &&
+          schema.exclusiveMaximum >= Number.MAX_SAFE_INTEGER
+        ) {
+          issues.push({
+            message:
+              'Integer `exclusiveMinimum` below safe range, should not be <= Number.MAX_SAFE_INTEGER (9007199254740991)',
+            path: path.join('.')
+          })
+        }
+      }
+      break
     case 'number':
       if (Object.hasOwn(schema, 'enum')) {
         if (!schema.enum.length) {
@@ -45,7 +130,7 @@ export const audit = (schema, path = []) => {
         ) {
           issues.push({
             message:
-              'Number missing `minimum` or `exclusiveMinimum`, should no be >= -9223372036854776000',
+              'Number missing `minimum` or `exclusiveMinimum`, should not be >= Number.MAX_VALUE (-1.7976931348623157E+308)',
             path: path.join('.')
           })
         }
@@ -55,11 +140,50 @@ export const audit = (schema, path = []) => {
         ) {
           issues.push({
             message:
-              'Number missing `maximum` or `exclusiveMaximum`, should not be <= 9223372036854776000',
+              'Number missing `maximum` or `exclusiveMaximum`, should not be <= Number.MAX_VALUE (1.7976931348623157E+308)',
             path: path.join('.')
           })
         }
-        // TODO add in range check
+        if (
+          Object.hasOwn(schema, 'minimum') &&
+          schema.minimum < -Number.MAX_VALUE
+        ) {
+          issues.push({
+            message:
+              'Number `minimum` below safe range, should not be < -Number.MAX_VALUE (-1.7976931348623157E+308)',
+            path: path.join('.')
+          })
+        }
+        if (
+          Object.hasOwn(schema, 'exclusiveMinimum') &&
+          schema.exclusiveMinimum <= -Number.MAX_VALUE
+        ) {
+          issues.push({
+            message:
+              'Number `exclusiveMinimum` below safe range, should not be <= -Number.MAX_VALUE (-1.7976931348623157E+308)',
+            path: path.join('.')
+          })
+        }
+        if (
+          Object.hasOwn(schema, 'maximum') &&
+          schema.maximum > Number.MAX_VALUE
+        ) {
+          issues.push({
+            message:
+              'Number `maximum` above safe range, should not be > Number.MAX_VALUE (1.7976931348623157E+308)',
+            path: path.join('.')
+          })
+        }
+        if (
+          Object.hasOwn(schema, 'exclusiveMaximum') &&
+          schema.exclusiveMaximum >= Number.MAX_VALUE
+        ) {
+          issues.push({
+            message:
+              'Number `exclusiveMinimum` below safe range, should not be <= Number.MAX_VALUE (1.7976931348623157E+308)',
+            path: path.join('.')
+          })
+        }
       }
       break
     case 'string':
