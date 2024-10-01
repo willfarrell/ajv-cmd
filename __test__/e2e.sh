@@ -5,6 +5,9 @@ function bundle {
   node cli.js validate ${1} --valid \
 	--strict true --coerce-types array --all-errors true --use-defaults empty
   
+  echo "audit ${1}"
+  node cli.js audit ${1}
+  
   echo "transpile ${1}"
   node cli.js transpile ${1} \
 	--strict true --coerce-types array --all-errors true --use-defaults empty \

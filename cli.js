@@ -3,6 +3,7 @@
 
 import { Command, Option } from 'commander'
 import validate from './commands/validate.js'
+import audit from './commands/audit.js'
 import deref from './commands/deref.js'
 import transpile from './commands/transpile.js'
 import ftl from './commands/ftl.js'
@@ -25,7 +26,7 @@ program
   .addOption(
     new Option(
       '-r, --ref-schema-files <refSchemaFiles...>',
-      'The schema in -s parameter can reference any of these schemas with $ref keyword.'
+      'The schema in <input> can reference any of these schemas with $ref keyword.'
     )
   )
   .addOption(new Option('--strict [strict]', 'true/false/log').preset(true))
@@ -72,7 +73,7 @@ program
   .addOption(
     new Option(
       '-r, --ref-schema-files <refSchemaFiles...>',
-      'The schema in -s parameter can reference any of these schemas with $ref keyword.'
+      'The schema in <input> can reference any of these schemas with $ref keyword.'
     )
   )
   .addOption(new Option('--strict [strict]', 'true/false/log').preset(true))
@@ -113,12 +114,12 @@ program
 program
   .command('deref')
   .argument('<input>', 'Path to the JSON-Schema file to deref relative $ref')
-  // .addOption(
-  //   new Option(
-  //     '-r, --schemas <schemas...>',
-  //     'The schema in -s parameter can reference any of these schemas with $ref keyword.'
-  //   )
-  // )
+  .addOption(
+    new Option(
+      '-r, --ref-schema-files <refSchemaFiles...>',
+      'The schema in <input> can reference any of these schemas with $ref keyword.'
+    )
+  )
   .addOption(
     new Option(
       '-o, --output <output>',
@@ -126,6 +127,26 @@ program
     )
   )
   .action(deref)
+
+program
+  .command('audit')
+  .argument('<input>', 'Path to the JSON-Schema file to audit for security')
+  .addOption(
+    new Option(
+      '-r, --ref-schema-files <refSchemaFiles...>',
+      'The schema in <input> can reference any of these schemas with $ref keyword.'
+    )
+  )
+  .addOption(
+    new Option('-f, --fail', 'When issues found throw exit(1)').preset(true)
+  )
+  .addOption(
+    new Option(
+      '-o, --output <output>',
+      'Path to store the resulting JSON issues file.'
+    )
+  )
+  .action(audit)
 
 program
   .command('ftl')
