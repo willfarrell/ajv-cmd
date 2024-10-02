@@ -27,7 +27,7 @@ export default async (input, options) => {
   }
 
   if (options?.testDataFiles) {
-    const testDataFile = []
+    const testDataFiles = []
     for (const testDataFilePath of options.testDataFiles) {
       const testDataFile = await readFile(testDataFilePath, {
         encoding: 'utf8'

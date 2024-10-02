@@ -40,15 +40,23 @@ const mockFetch = (schemas) => {
   const _fetch = fetch
 
   const cache = {}
+  const enc = new TextEncoder()
   for (let i = schemas.length; i--; ) {
     const schema = schemas[i]
     if (schema.$id) {
-      cache[schema.$id] = schema
+      cache[schema.$id] = enc.encode(JSON.stringify(schema))
     }
   }
 
-  globalThis.fetch = async () => {
-    if (cache[arguments[0]]) return cache[arguments[0]]
-    return _fetch(...arguments)
+  globalThis.fetch = async (...args) => {
+    if (cache[args[0].href]) {
+      return Promise.resolve({
+        status: 200,
+        body: true,
+        arrayBuffer: async () => cache[args[0].href]
+      })
+    }
+
+    return _fetch(...args)
   }
 }
