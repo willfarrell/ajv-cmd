@@ -1,6 +1,6 @@
 {
   "name": "ajv-cmd",
-  "version": "0.6.3",
+  "version": "0.7.0",
   "description": "Deref, Validate, Transpile, and Test JSON-Schema (.json) files using ajv",
   "type": "module",
   "bin": {
@@ -19,8 +19,8 @@
     "transpile.js",
     "validate.cjs",
     "validate.js",
-    "audit.cjs",
-    "audit.js"
+    "sast.cjs",
+    "sast.js"
   ],
   "main": "index.js",
   "exports": {
@@ -64,24 +64,24 @@
         "default": "./validate.cjs"
       }
     },
-    "./audit": {
+    "./sast": {
       "import": {
-        "default": "./audit.js"
+        "default": "./sast.js"
       },
       "require": {
-        "default": "./audit.cjs"
+        "default": "./sast.cjs"
       }
     }
   },
   "scripts": {
     "prepublishOnly": "npm run build",
-    "build": "npm run build:index && npm run build:compile && npm run build:ftl && npm run build:transpile && npm run build:validate && npm run build:audit",
+    "build": "npm run build:index && npm run build:compile && npm run build:ftl && npm run build:transpile && npm run build:validate && npm run build:sast",
     "build:index": "./node_modules/.bin/esbuild index.js --platform=node --format=cjs  --target=node16 --allow-overwrite --outfile=index.cjs",
     "build:compile": "./node_modules/.bin/esbuild compile.js --platform=node --format=cjs  --target=node16 --allow-overwrite --outfile=compile.cjs",
     "build:ftl": "./node_modules/.bin/esbuild ftl.js --platform=node --format=cjs  --target=node16 --bundle --allow-overwrite --outfile=ftl.cjs",
     "build:transpile": "./node_modules/.bin/esbuild transpile.js --platform=node --format=cjs  --target=node16 --allow-overwrite --outfile=transpile.cjs",
     "build:validate": "./node_modules/.bin/esbuild validate.js --platform=node --format=cjs  --target=node16  --allow-overwrite --outfile=validate.cjs",
-    "build:audit": "./node_modules/.bin/esbuild audit.js --platform=node --format=cjs  --target=node16  --allow-overwrite --outfile=audit.cjs"
+    "build:sast": "./node_modules/.bin/esbuild sast.js --platform=node --format=cjs  --target=node16  --allow-overwrite --outfile=sast.cjs"
   },
   "repository": {
     "type": "git",
@@ -111,7 +111,8 @@
     "ajv-i18n": "4.2.0",
     "ajv-keywords": "5.1.0",
     "commander": "12.1.0",
-    "esbuild": "^0.24.0"
+    "esbuild": "^0.24.0",
+    "sast-json-schema": "0.0.0-alpha.0"
   },
   "funding": {
     "type": "github",

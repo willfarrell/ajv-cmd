@@ -3,7 +3,7 @@
 
 import { Command, Option } from 'commander'
 import validate from './commands/validate.js'
-import audit from './commands/audit.js'
+import sast from './commands/sast.js'
 import deref from './commands/deref.js'
 import transpile from './commands/transpile.js'
 import ftl from './commands/ftl.js'
@@ -129,8 +129,11 @@ program
   .action(deref)
 
 program
-  .command('audit')
+  .command('sast')
   .argument('<input>', 'Path to the JSON-Schema file to audit for security')
+  .addOption(
+    new Option('--all-errors', 'collect all validation errors').preset(true)
+  )
   .addOption(
     new Option(
       '-r, --ref-schema-files <refSchemaFiles...>',
@@ -146,7 +149,7 @@ program
       'Path to store the resulting JSON issues file.'
     )
   )
-  .action(audit)
+  .action(sast)
 
 program
   .command('ftl')
