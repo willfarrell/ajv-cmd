@@ -1,6 +1,6 @@
 {
   "name": "ajv-cmd",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "Deref, Validate, Transpile, and Test JSON-Schema (.json) files using ajv",
   "type": "module",
   "bin": {
