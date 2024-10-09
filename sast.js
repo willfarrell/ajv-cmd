@@ -1,38 +1,19 @@
+import Ajv from 'ajv/dist/2020.js'
+import sastSchema from 'sast-json-schema/index.json' with { type: 'json' } 
+
 const defaultOptions = {
   strictTypes: false,
   allErrors: true
 }
 
 let schema
-export const sast = async (schema, options = {}) => {
+export const sast =  (schema, options = {}) => {
   options = { ...defaultOptions, ...options }
 
-  //schema ??= await fetch('https://raw.githubusercontent.com/willfarrell/sast-json-schema/main/index.json'
-
   const ajv = new Ajv(options)
-  const compile = ajv.compile(schema)
+  const validate = ajv.compile(sastSchema)
 
-  let validate, valid
-
-  // Compile check
-  try {
-    validate = compile(schema, options)
-  } catch (e) {
-    console.error(e.message)
-    return valid
-  }
-
-  // Data Check
-  let testSuccess = true
-  for (const data of options?.testData ?? []) {
-    valid = validate(data)
-    if (!valid) {
-      console.error(validate.errors)
-      testSuccess = false
-    }
-  }
-
-  return testSuccess
+  return validate
 }
 
 export default sast

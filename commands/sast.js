@@ -1,5 +1,5 @@
 import { stat, readFile, writeFile } from 'node:fs/promises'
-import validate from '../validate.js'
+import sast from '../sast.js'
 
 const fileExists = async (filepath) => {
   const stats = await stat(filepath)
@@ -26,7 +26,8 @@ export default async (input, options) => {
     options.schemas = refSchemas
   }
 
-  const valid = await validate(jsonSchema, options)
+  const validate = sast(jsonSchema, options)
+  const valid = validate(jsonSchema, options)
   if (!valid) {
     if (options.output) {
       JSON.stringify(validate.errors, null, 2)
