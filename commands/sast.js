@@ -33,7 +33,7 @@ export default async (input, options) => {
       JSON.stringify(validate.errors, null, 2)
     }
   }
-  if (validate.errors.length) {
+  if (validate.errors?.length) {
     if (typeof options.output === 'string') {
       await writeFile(
         options.output,
