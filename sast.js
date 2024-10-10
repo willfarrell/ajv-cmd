@@ -7,9 +7,7 @@ const defaultOptions = {
   allErrors: true
 }
 
-const sastSchema = createRequire(import.meta.url)(
-  './node_modules/sast-json-schema/index.json'
-)
+const sastSchema = createRequire(import.meta.url)('sast-json-schema/index.json')
 export const sast = (schema, options = {}) => {
   options = { ...defaultOptions, ...options }
 
