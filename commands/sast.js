@@ -43,7 +43,7 @@ export default async (input, options) => {
     } else if (options.output === true) {
       return issues
     } else {
-      console.log(input, 'has issues', JSON.stringify(validate.errors))
+      console.log(input, 'has issues', stringify(validate.errors))
     }
     if (options.fail) {
       process.exit(1)
@@ -51,4 +51,12 @@ export default async (input, options) => {
   } else {
     console.log(input, 'has no issues')
   }
+}
+
+const stringify = (arr) => {
+  let str = '[\n'
+  for (let i = 0, l = arr.length; i < l; i++) {
+    str += JSON.stringify(arr[i]) + (i == l ? ',' : '') + '\n'
+  }
+  return str + ']'
 }
