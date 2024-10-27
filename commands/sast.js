@@ -58,5 +58,5 @@ const stringify = (arr) => {
   for (let i = 0, l = arr.length; i < l; i++) {
     str += JSON.stringify(arr[i]) + (i == l ? ',' : '') + '\n'
   }
-  return str + ']'
+  return str + '\n]'
 }
