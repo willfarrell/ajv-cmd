@@ -1,5 +1,6 @@
-#!/usr/bin/env node
-// #!/usr/bin/env -S node --experimental-json-modules --no-warnings
+#!/usr/bin/env -S node --disable-warning=DEP0040
+// --disable-warning=DEP0040 [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+// #!/usr/bin/env -S node --experimental-json-modules --no-warnings --no-deprecation
 
 import { Command, Option } from 'commander'
 import validate from './commands/validate.js'
