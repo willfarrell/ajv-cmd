@@ -1,6 +1,6 @@
 {
   "name": "ajv-cmd",
-  "version": "0.7.12",
+  "version": "0.8.0",
   "description": "Deref, Validate, Transpile, and Test JSON-Schema (.json) files using ajv",
   "type": "module",
   "bin": {
@@ -102,7 +102,7 @@
   },
   "homepage": "https://github.com/willfarrell/ajv-cmd",
   "dependencies": {
-    "@apidevtools/json-schema-ref-parser": "11.9.3",
+    "@apidevtools/json-schema-ref-parser": "14.0.3",
     "ajv": "8.17.1",
     "ajv-errors": "3.0.0",
     "ajv-formats": "3.0.1",
@@ -110,7 +110,7 @@
     "ajv-ftl-i18n": "0.1.1",
     "ajv-i18n": "4.2.0",
     "ajv-keywords": "5.1.0",
-    "commander": "13.1.0",
+    "commander": "14.0.0",
     "esbuild": "^0.25.0",
     "sast-json-schema": "^0.0.0-alpha.3"
   },

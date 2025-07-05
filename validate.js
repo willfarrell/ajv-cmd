@@ -5,7 +5,7 @@ const defaultOptions = {
   allErrors: true // required for `errorMessage`
 }
 
-export const validate = async (schema, options = {}) => {
+export const test = async (schema, options = {}) => {
   options = { ...defaultOptions, ...options }
 
   let validate, valid
@@ -40,4 +40,4 @@ export const validate = async (schema, options = {}) => {
   return testSuccess
 }
 
-export default validate
+export default test
