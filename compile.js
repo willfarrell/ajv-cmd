@@ -1,6 +1,6 @@
 import Ajv from 'ajv/dist/2020.js'
 import ajvFormats from 'ajv-formats'
-import ajvFormatsDraft2019 from 'ajv-formats-draft2019'
+import ajvFormatsDraft2019 from '@silverbucket/ajv-formats-draft2019'
 import ajvKeywords from 'ajv-keywords'
 import ajvErrors from 'ajv-errors'
 
