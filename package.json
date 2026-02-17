@@ -1,6 +1,6 @@
 {
   "name": "ajv-cmd",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "description": "Deref, Validate, Transpile, and Test JSON-Schema (.json) files using ajv",
   "type": "module",
   "bin": {
@@ -40,12 +40,28 @@
         "default": "./compile.cjs"
       }
     },
+    "./deref": {
+      "import": {
+        "default": "./deref.js"
+      },
+      "require": {
+        "default": "./deref.cjs"
+      }
+    },
     "./ftl": {
       "import": {
         "default": "./ftl.js"
       },
       "require": {
         "default": "./ftl.cjs"
+      }
+    },
+    "./sast": {
+      "import": {
+        "default": "./sast.js"
+      },
+      "require": {
+        "default": "./sast.cjs"
       }
     },
     "./transpile": {
@@ -62,14 +78,6 @@
       },
       "require": {
         "default": "./validate.cjs"
-      }
-    },
-    "./sast": {
-      "import": {
-        "default": "./sast.js"
-      },
-      "require": {
-        "default": "./sast.cjs"
       }
     }
   },
@@ -102,17 +110,27 @@
   },
   "homepage": "https://github.com/willfarrell/ajv-cmd",
   "dependencies": {
-    "@apidevtools/json-schema-ref-parser": "14.1.1",
-    "ajv": "8.17.1",
+    "@apidevtools/json-schema-ref-parser": "15.2.2",
+    "ajv": "8.18.0",
     "ajv-errors": "3.0.0",
     "ajv-formats": "3.0.1",
     "@silverbucket/ajv-formats-draft2019": "1.6.5",
     "ajv-ftl-i18n": "0.1.1",
     "ajv-i18n": "4.2.0",
     "ajv-keywords": "5.1.0",
-    "commander": "14.0.0",
+    "commander": "14.0.3",
     "esbuild": "^0.25.0",
     "sast-json-schema": "^0.0.0-alpha.3"
+  },
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "onFail": "error"
+    },
+    "packageManager": {
+      "name": "npm",
+      "onFail": "error"
+    }
   },
   "funding": {
     "type": "github",
