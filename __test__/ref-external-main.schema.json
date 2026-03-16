@@ -1,0 +1,9 @@
+{
+	"$id": "https://example.com/schemas/main",
+	"type": "object",
+	"properties": {
+		"part": {
+			"$ref": "https://example.com/schemas/part"
+		}
+	}
+}

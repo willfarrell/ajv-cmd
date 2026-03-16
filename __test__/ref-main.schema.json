@@ -1,0 +1,18 @@
+{
+	"type": "object",
+	"properties": {
+		"sub": {
+			"$ref": "#/$defs/subType"
+		}
+	},
+	"$defs": {
+		"subType": {
+			"type": "object",
+			"properties": {
+				"value": {
+					"type": "string"
+				}
+			}
+		}
+	}
+}
