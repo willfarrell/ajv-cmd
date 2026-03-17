@@ -1,0 +1,9 @@
+{
+	"$id": "https://example.com/schemas/part",
+	"type": "object",
+	"properties": {
+		"value": {
+			"type": "string"
+		}
+	}
+}

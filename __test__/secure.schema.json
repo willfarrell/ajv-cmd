@@ -1,0 +1,12 @@
+{
+	"type": "object",
+	"properties": {
+		"name": {
+			"type": "string",
+			"format": "email",
+			"maxLength": 100
+		}
+	},
+	"required": ["name"],
+	"unevaluatedProperties": false
+}

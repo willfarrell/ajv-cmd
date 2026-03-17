@@ -1,20 +1,25 @@
-import { createRequire } from 'node:module'
-import Ajv from 'ajv/dist/2020.js'
+// Copyright 2026 will Farrell, and ajv-cmd contributors.
+// SPDX-License-Identifier: MIT
+import { createRequire } from "node:module";
+import Ajv from "ajv/dist/2020.js";
+
 //import sastSchema from 'sast-json-schema/index.json' with { type: 'json' }
 
 const defaultOptions = {
-  strictTypes: false,
-  allErrors: true
-}
+	strictTypes: false,
+	allErrors: true,
+};
 
-const sastSchema = createRequire(import.meta.url)('sast-json-schema/index.json')
+const sastSchema = createRequire(import.meta.url)(
+	"sast-json-schema/index.json",
+);
 export const sast = (schema, options = {}) => {
-  options = { ...defaultOptions, ...options }
+	options = { ...defaultOptions, ...options };
 
-  const ajv = new Ajv(options)
-  const validate = ajv.compile(sastSchema)
+	const ajv = new Ajv(options);
+	const validate = ajv.compile(sastSchema);
 
-  return validate
-}
+	return validate;
+};
 
-export default sast
+export default sast;
