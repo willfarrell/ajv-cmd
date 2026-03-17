@@ -1,6 +1,6 @@
 // Copyright 2026 will Farrell, and ajv-cmd contributors.
 // SPDX-License-Identifier: MIT
-import { readFile, stat, writeFile } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import validate from "../validate.js";
 
 const fileExists = async (filepath) => {

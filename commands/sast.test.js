@@ -54,7 +54,7 @@ test("cmd sast should exit(1) with --fail when issues found", async (t) => {
 });
 
 test("cmd sast should load ref schema files", async (t) => {
-	const mockLog = t.mock.method(console, "log", () => {});
+	const _mockLog = t.mock.method(console, "log", () => {});
 	await sastCmd(fixture("simple.schema.json"), {
 		refSchemaFiles: [fixture("ref-main.schema.json")],
 	});
