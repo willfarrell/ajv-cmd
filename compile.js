@@ -1,6 +1,7 @@
 // Copyright 2026 will Farrell, and ajv-cmd contributors.
 // SPDX-License-Identifier: MIT
 import ajvFormatsDraft2019 from "@silverbucket/ajv-formats-draft2019";
+/** @typedef {import("ajv/dist/2020.js").default} Ajv2020 */
 import Ajv from "ajv/dist/2020.js";
 import ajvErrors from "ajv-errors";
 import ajvFormats from "ajv-formats";
@@ -10,6 +11,7 @@ const defaultOptions = {
 	allErrors: true, // required for ajv-errors
 };
 
+/** @returns {Ajv2020} */
 export const instance = (options = {}) => {
 	options = { ...defaultOptions, ...options, keywords: [] };
 

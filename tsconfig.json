@@ -8,6 +8,6 @@
 		"noEmit": true,
 		"strict": true
 	},
-	"include": ["**/*.js", "**/*.tst.ts"],
+	"include": ["**/*.js", "**/*.d.ts", "**/*.tst.ts"],
 	"exclude": ["node_modules", "commands"]
 }
