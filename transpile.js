@@ -20,7 +20,22 @@ const defaultOptions = {
 
 // Formats from @silverbucket/ajv-formats-draft2019 that AJV standalone
 // incorrectly references via ajv-formats/dist/formats
-const draft2019Formats = new Set(["iri", "idn-email", "idn-hostname", "iri-reference"]);
+const draft2019Formats = new Set([
+	"iri",
+	"idn-email",
+	"idn-hostname",
+	"iri-reference",
+]);
+
+const bridgeModuleName = "formats-draft2019-bridge";
+
+const bridgeModuleContent = `
+const Ajv = require("ajv/dist/2020.js").default;
+const ajvFormatsDraft2019 = require("@silverbucket/ajv-formats-draft2019").default;
+const ajv = new Ajv();
+ajvFormatsDraft2019(ajv);
+exports.fullFormats = ajv.formats;
+`;
 
 const fixDraft2019FormatRequires = (code) => {
 	return code.replaceAll(
@@ -28,7 +43,7 @@ const fixDraft2019FormatRequires = (code) => {
 		(match, dotName, bracketName) => {
 			const formatName = dotName ?? bracketName;
 			if (draft2019Formats.has(formatName)) {
-				return `require("./formats-draft2019-bridge.cjs").fullFormats["${formatName}"]`;
+				return `require("./${bridgeModuleName}.cjs").fullFormats["${formatName}"]`;
 			}
 			return match;
 		},
@@ -41,9 +56,28 @@ export const transpile = async (schema, options = {}) => {
 	const ajv = instance(options);
 	const validate = compile(schema, options);
 	let js = standaloneCode(ajv, validate);
+	const needsBridge =
+		draft2019Formats.intersection(
+			new Set(
+				js
+					.match(/fullFormats(?:\.(\w+)|\["([^"]+)"\])/g)
+					?.map((m) =>
+						m.replace(/fullFormats[.[]"?/, "").replace(/"?\]$/, ""),
+					) ?? [],
+			),
+		).size > 0;
+
 	js = fixDraft2019FormatRequires(js);
 
 	const file = join(__dirname, `${randomBytes(16).toString("hex")}.js`);
+	const bridgeFile = join(__dirname, `${bridgeModuleName}.cjs`);
+
+	const cleanupFiles = [file];
+	if (needsBridge) {
+		await writeFile(bridgeFile, bridgeModuleContent, "utf8");
+		cleanupFiles.push(bridgeFile);
+	}
+
 	await writeFile(file, js, "utf8");
 
 	await build({
@@ -58,7 +92,7 @@ export const transpile = async (schema, options = {}) => {
 	});
 
 	js = await readFile(file, { encoding: "utf8" });
-	await unlink(file);
+	await Promise.all(cleanupFiles.map((f) => unlink(f)));
 
 	return js;
 };

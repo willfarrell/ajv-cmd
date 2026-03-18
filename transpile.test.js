@@ -1,6 +1,12 @@
 import { ok, strictEqual } from "node:assert";
+import { randomBytes } from "node:crypto";
+import { unlink, writeFile } from "node:fs/promises";
+import { dirname, join } from "node:path";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 import transpile from "./transpile.js";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const simpleSchema = {
 	type: "object",
@@ -33,13 +39,6 @@ test("transpile default export should be transpile function", async () => {
 });
 
 // draft2019 format tests (https://github.com/willfarrell/ajv-cmd/issues/3)
-import { writeFile, unlink } from "node:fs/promises";
-import { randomBytes } from "node:crypto";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-
 const importTranspiled = async (js) => {
 	const file = join(__dirname, `__test_${randomBytes(8).toString("hex")}.mjs`);
 	await writeFile(file, js, "utf8");
