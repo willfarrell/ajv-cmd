@@ -33,7 +33,7 @@ export const test = async (schema, options = {}) => {
 	// Data Check
 	let testSuccess = true;
 	for (const data of options?.testData ?? []) {
-		valid = validate(data);
+		valid = validate(structuredClone(data));
 		if (!valid) {
 			console.error(validate.errors);
 			testSuccess = false;

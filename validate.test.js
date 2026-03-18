@@ -1,4 +1,4 @@
-import { strictEqual } from "node:assert";
+import { deepStrictEqual, strictEqual } from "node:assert";
 import test from "node:test";
 import validate from "./validate.js";
 
@@ -41,6 +41,17 @@ test("validate should return false when any test data item is invalid", async (t
 		testData: [{ name: "Valid" }, { name: 123 }],
 	});
 	strictEqual(result, false);
+});
+
+test("validate should not mutate test data", async () => {
+	const schema = {
+		type: "object",
+		properties: { value: {} },
+	};
+	const testData = [{ value: "v" }];
+	const original = structuredClone(testData);
+	await validate(schema, { testData });
+	deepStrictEqual(testData, original);
 });
 
 test("validate default export should be test function", async () => {
