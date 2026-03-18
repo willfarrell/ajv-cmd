@@ -11,23 +11,28 @@ import ajvCmd, {
 
 describe("ajv-cmd", () => {
 	test("instance is a function", () => {
+		// biome-ignore lint/complexity/noBannedTypes: intentional generic function type check
 		expect(instance).type.toBeAssignableTo<Function>();
 		expect(instance()).type.toBeAssignableTo<object>();
 	});
 
 	test("compile is a function", () => {
+		// biome-ignore lint/complexity/noBannedTypes: intentional generic function type check
 		expect(compile).type.toBeAssignableTo<Function>();
 	});
 
 	test("transpile is a function", () => {
+		// biome-ignore lint/complexity/noBannedTypes: intentional generic function type check
 		expect(transpile).type.toBeAssignableTo<Function>();
 	});
 
 	test("validate is a function", () => {
+		// biome-ignore lint/complexity/noBannedTypes: intentional generic function type check
 		expect(validate).type.toBeAssignableTo<Function>();
 	});
 
 	test("ftl is exported", () => {
+		// biome-ignore lint/complexity/noBannedTypes: intentional generic function type check
 		expect(ftl).type.toBeAssignableTo<Function>();
 	});
 

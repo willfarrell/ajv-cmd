@@ -25,7 +25,7 @@ export const transpile = async (schema, options = {}) => {
 	const validate = compile(schema, options);
 	let js = standaloneCode(ajv, validate);
 
-	const file = join(__dirname, randomBytes(16).toString("hex") + ".js");
+	const file = join(__dirname, `${randomBytes(16).toString("hex")}.js`);
 	await writeFile(file, js, "utf8");
 
 	await build({
