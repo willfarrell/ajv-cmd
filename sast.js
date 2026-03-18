@@ -13,7 +13,7 @@ const defaultOptions = {
 const sastSchema = createRequire(import.meta.url)(
 	"sast-json-schema/index.json",
 );
-export const sast = (schema, options = {}) => {
+export const sast = (_schema, options = {}) => {
 	options = { ...defaultOptions, ...options };
 
 	const ajv = new Ajv(options);
