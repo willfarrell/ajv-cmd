@@ -18,12 +18,30 @@ const defaultOptions = {
 	},
 };
 
+// Formats from @silverbucket/ajv-formats-draft2019 that AJV standalone
+// incorrectly references via ajv-formats/dist/formats
+const draft2019Formats = new Set(["iri", "idn-email", "idn-hostname", "iri-reference"]);
+
+const fixDraft2019FormatRequires = (code) => {
+	return code.replaceAll(
+		/require\("ajv-formats\/dist\/formats"\)\.fullFormats(?:\.(\w+)|\["([^"]+)"\])/g,
+		(match, dotName, bracketName) => {
+			const formatName = dotName ?? bracketName;
+			if (draft2019Formats.has(formatName)) {
+				return `require("./formats-draft2019-bridge.cjs").fullFormats["${formatName}"]`;
+			}
+			return match;
+		},
+	);
+};
+
 export const transpile = async (schema, options = {}) => {
 	options = { ...defaultOptions, ...options };
 
 	const ajv = instance(options);
 	const validate = compile(schema, options);
 	let js = standaloneCode(ajv, validate);
+	js = fixDraft2019FormatRequires(js);
 
 	const file = join(__dirname, `${randomBytes(16).toString("hex")}.js`);
 	await writeFile(file, js, "utf8");
