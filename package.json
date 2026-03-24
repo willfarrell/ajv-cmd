@@ -138,7 +138,7 @@
 	},
 	"homepage": "https://github.com/willfarrell/ajv-cmd",
 	"dependencies": {
-		"@apidevtools/json-schema-ref-parser": "15.3.1",
+		"@apidevtools/json-schema-ref-parser": "15.3.2",
 		"@silverbucket/ajv-formats-draft2019": "1.6.5",
 		"ajv": "8.18.0",
 		"ajv-errors": "3.0.0",
