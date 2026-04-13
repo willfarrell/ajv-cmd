@@ -8,5 +8,6 @@
 		}
 	},
 	"required": ["name"],
+	"maxProperties": 1,
 	"unevaluatedProperties": false
 }

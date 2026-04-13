@@ -1,6 +1,6 @@
 {
 	"name": "ajv-cmd",
-	"version": "0.10.2",
+	"version": "0.11.0",
 	"description": "Deref, Validate, Transpile, and Test JSON-Schema (.json) files using ajv",
 	"type": "module",
 	"engines": {
@@ -148,6 +148,7 @@
 		"ajv-keywords": "5.1.0",
 		"commander": "14.0.3",
 		"esbuild": "^0.28.0",
+		"redos-detector": "6.1.4",
 		"sast-json-schema": "^0.1.0"
 	},
 	"devDependencies": {

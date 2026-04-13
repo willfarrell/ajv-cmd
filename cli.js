@@ -149,6 +149,24 @@ program
 	)
 	.addOption(
 		new Option(
+			"--override-max-items <overrideMaxItems>",
+			"Override the max items limit (default 1024). Removes maxItems errors when the array size is within this limit. Values <= 1024 are a no-op.",
+		),
+	)
+	.addOption(
+		new Option(
+			"--override-max-depth <overrideMaxDepth>",
+			"Override the max schema depth limit (default 32).",
+		),
+	)
+	.addOption(
+		new Option(
+			"--override-max-properties <overrideMaxProperties>",
+			"Override the max properties limit (default 1024). Removes maxProperties errors when the property count is within this limit. Values <= 1024 are a no-op.",
+		),
+	)
+	.addOption(
+		new Option(
 			"-o, --output <output>",
 			"Path to store the resulting JSON issues file.",
 		),
