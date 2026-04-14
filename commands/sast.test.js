@@ -94,8 +94,7 @@ test("cmd sast should only remove maxItems errors, keep other errors with overri
 	ok(result.length > 0);
 	strictEqual(
 		result.filter(
-			(e) =>
-				e.schemaPath === "#/definitions/safeArrayItemsLimits/maxItems",
+			(e) => e.schemaPath === "#/definitions/safeArrayItemsLimits/maxItems",
 		).length,
 		0,
 	);

@@ -63,14 +63,8 @@ export default async (input, options) => {
 		if (options.overrideMaxItems != null && errors.length) {
 			const limit = Number(options.overrideMaxItems);
 			errors = errors.filter((err) => {
-				if (
-					err.schemaPath ===
-					"#/definitions/safeArrayItemsLimits/maxItems"
-				) {
-					const arr = resolveInstancePath(
-						jsonSchema,
-						err.instancePath,
-					);
+				if (err.schemaPath === "#/definitions/safeArrayItemsLimits/maxItems") {
+					const arr = resolveInstancePath(jsonSchema, err.instancePath);
 					return !Array.isArray(arr) || arr.length > limit;
 				}
 				return true;
@@ -83,10 +77,7 @@ export default async (input, options) => {
 					err.schemaPath ===
 					"#/definitions/safeObjectPropertiesLimits/maxProperties"
 				) {
-					const obj = resolveInstancePath(
-						jsonSchema,
-						err.instancePath,
-					);
+					const obj = resolveInstancePath(jsonSchema, err.instancePath);
 					if (typeof obj !== "object" || obj === null) return true;
 					return Object.keys(obj).length > limit;
 				}
@@ -97,11 +88,7 @@ export default async (input, options) => {
 
 	if (errors.length) {
 		if (typeof options.output === "string") {
-			await writeFile(
-				options.output,
-				JSON.stringify(errors, null, 2),
-				"utf8",
-			);
+			await writeFile(options.output, JSON.stringify(errors, null, 2), "utf8");
 		} else if (options.output === true) {
 			return errors;
 		} else {
