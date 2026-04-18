@@ -115,7 +115,7 @@
 		"git:unit-staged": "node --test",
 		"git:test-staged": "npm run git:unit-staged",
 		"lint": "biome check --write --no-errors-on-unmatched",
-		"test:lint": "biome check --no-errors-on-unmatched",
+		"test:lint": "biome ci --no-errors-on-unmatched",
 		"test:lint:staged": "biome check --staged --no-errors-on-unmatched",
 		"release:license:add": "license-check-and-add add -f license.json",
 		"release:license:remove": "license-check-and-add remove -f license.json"
