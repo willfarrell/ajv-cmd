@@ -87,7 +87,7 @@
 		}
 	},
 	"scripts": {
-		"prepare": "husky",
+		"prepare": "husky || true",
 		"prepublishOnly": "npm run build",
 		"build": "npm run build:index && npm run build:compile && npm run build:ftl && npm run build:transpile && npm run build:validate && npm run build:sast",
 		"build:index": "./node_modules/.bin/esbuild index.js --platform=node --format=cjs  --target=node18 --allow-overwrite --outfile=index.cjs",
