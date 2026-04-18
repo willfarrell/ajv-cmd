@@ -96,6 +96,7 @@
 		"build:transpile": "./node_modules/.bin/esbuild transpile.js --platform=node --format=cjs  --target=node18 --allow-overwrite --outfile=transpile.cjs",
 		"build:validate": "./node_modules/.bin/esbuild validate.js --platform=node --format=cjs  --target=node18  --allow-overwrite --outfile=validate.cjs",
 		"build:sast": "./node_modules/.bin/esbuild sast.js --platform=node --format=cjs  --target=node18  --allow-overwrite --outfile=sast.cjs",
+		"pretest": "npm run build",
 		"test": "npm run test:lint && npm run test:unit && npm run test:types && npm run test:sast && npm run test:perf && npm run test:dast",
 		"test:unit": "node --test --experimental-test-coverage --test-coverage-lines=95 --test-coverage-branches=90 --test-coverage-functions=90 ./*.test.js ./commands/*.test.js",
 		"test:sast": "npm run test:sast:license && npm run test:sast:lockfile && npm run test:sast:semgrep && npm run test:sast:trufflehog && npm run test:sast:trivy",
