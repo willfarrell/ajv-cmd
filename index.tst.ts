@@ -3,6 +3,7 @@
 import { describe, expect, test } from "tstyche";
 import ajvCmd, {
 	compile,
+	deref,
 	ftl,
 	instance,
 	transpile,
@@ -19,6 +20,11 @@ describe("ajv-cmd", () => {
 	test("compile is a function", () => {
 		// biome-ignore lint/complexity/noBannedTypes: intentional generic function type check
 		expect(compile).type.toBeAssignableTo<Function>();
+	});
+
+	test("deref is a function", () => {
+		// biome-ignore lint/complexity/noBannedTypes: intentional generic function type check
+		expect(deref).type.toBeAssignableTo<Function>();
 	});
 
 	test("transpile is a function", () => {
@@ -40,6 +46,7 @@ describe("ajv-cmd", () => {
 		expect(ajvCmd).type.toBe<{
 			instance: typeof instance;
 			compile: typeof compile;
+			deref: typeof deref;
 			ftl: typeof ftl;
 			transpile: typeof transpile;
 			validate: typeof validate;

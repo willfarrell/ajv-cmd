@@ -1,9 +1,9 @@
 #!/usr/bin/env -S node --disable-warning=DEP0040
 // Copyright 2026 will Farrell, and ajv-cmd contributors.
 // SPDX-License-Identifier: MIT
-// --disable-warning=DEP0040 [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-// #!/usr/bin/env -S node --experimental-json-modules --no-warnings --no-deprecation
+// --disable-warning=DEP0040 suppresses: [DEP0040] DeprecationWarning: The `punycode` module is deprecated.
 
+import { createRequire } from "node:module";
 import { Command, Option } from "commander";
 import deref from "./commands/deref.js";
 import ftl from "./commands/ftl.js";
@@ -11,13 +11,13 @@ import sast from "./commands/sast.js";
 import transpile from "./commands/transpile.js";
 import validate from "./commands/validate.js";
 
-//import metadata from './package.json' assert { type: 'json' }
+const { version } = createRequire(import.meta.url)("./package.json");
 
 const program = new Command()
 	.name("ajv")
-	//.version(metadata.version)
+	.version(version)
 	.description(
-		"Transpile JSON-Schema (.json) files to JavaScript (.js or .mjs) using ajv",
+		"Validate, transpile, dereference, and audit JSON-Schema files using AJV",
 	);
 
 program
@@ -71,8 +71,6 @@ program
 program
 	.command("transpile")
 	.argument("<input>", "Path to the JSON-Schema file to transpile")
-	//.addOption(new Option('--ftl <ftl>', 'Path to ftl file')
-
 	// Docs: https://ajv.js.org/packages/ajv-cli.html
 	.addOption(
 		new Option(
@@ -163,6 +161,30 @@ program
 		new Option(
 			"--override-max-properties <overrideMaxProperties>",
 			"Override the max properties limit (default 1024). Removes maxProperties errors when the property count is within this limit. Values <= 1024 are a no-op.",
+		),
+	)
+	.addOption(
+		new Option(
+			"--ignore <ignore...>",
+			"Suppress errors by `instancePath` or `instancePath:keyword` (exact match).",
+		),
+	)
+	.addOption(
+		new Option(
+			"--offline",
+			"Skip DNS lookups for remote $ref URLs (disables SSRF resolution).",
+		).preset(true),
+	)
+	.addOption(
+		new Option(
+			"--dns-timeout-ms <dnsTimeoutMs>",
+			"Per-hostname DNS lookup timeout in ms for SSRF checks (default 5000).",
+		),
+	)
+	.addOption(
+		new Option(
+			"--dns-concurrency <dnsConcurrency>",
+			"Max concurrent DNS lookups for SSRF checks (default 10).",
 		),
 	)
 	.addOption(

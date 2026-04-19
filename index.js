@@ -4,12 +4,14 @@ import {
 	compile as compileImport,
 	instance as instanceImport,
 } from "./compile.js";
+import derefImport from "./deref.js";
 import ftlImport from "./ftl.js";
 import transpileImport from "./transpile.js";
 import validateImport from "./validate.js";
 
 export const instance = instanceImport;
 export const compile = compileImport;
+export const deref = derefImport;
 export const transpile = transpileImport;
 export const validate = validateImport;
 export const ftl = ftlImport;
@@ -17,6 +19,7 @@ export const ftl = ftlImport;
 export default {
 	instance,
 	compile,
+	deref,
 	ftl,
 	transpile,
 	validate,

@@ -1,6 +1,7 @@
 {
 	"name": "@willfarrell/ajv-cmd-github-workflows",
 	"version": "0.0.1",
+	"description": "Workspace for CI-only dev tools (e.g. lockfile-lint) that should not be installed by users or bloat the top-level dependency graph.",
 	"private": true,
 	"engines": {
 		"node": ">=24.0"

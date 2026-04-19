@@ -1,31 +1,16 @@
 // Copyright 2026 will Farrell, and ajv-cmd contributors.
 // SPDX-License-Identifier: MIT
-import { readFile, stat, writeFile } from "node:fs/promises";
+import { writeFile } from "node:fs/promises";
 import transpile from "../transpile.js";
-
-const fileExists = async (filepath) => {
-	const stats = await stat(filepath);
-	if (!stats.isFile()) {
-		throw new Error(`${filepath} is not a file`);
-	}
-};
+import { assertFile, loadRefSchemas, readJson } from "./_utils.js";
 
 export default async (input, options) => {
-	await fileExists(input);
+	await assertFile(input);
 
-	const jsonSchema = await readFile(input, { encoding: "utf8" }).then((res) =>
-		JSON.parse(res),
-	);
+	const jsonSchema = await readJson(input);
 
 	if (options?.refSchemaFiles) {
-		const refSchemas = [];
-		for (const schemaFilePath of options.refSchemaFiles) {
-			const refSchemaFile = await readFile(schemaFilePath, {
-				encoding: "utf8",
-			}).then((res) => JSON.parse(res));
-			refSchemas.push(refSchemaFile);
-		}
-		options.schemas = refSchemas;
+		options.schemas = await loadRefSchemas(options.refSchemaFiles);
 	}
 
 	const js = await transpile(jsonSchema, options);

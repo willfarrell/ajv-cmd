@@ -1,23 +1,32 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-function bundle {
-  echo "validate ${1}"
-  node cli.js validate ${1} --valid \
-	--strict true --coerce-types array --all-errors true --use-defaults empty
-  
-  echo "sast audit ${1}"
-  node cli.js sast ${1}
-  
-  echo "transpile ${1}"
-  node cli.js transpile ${1} \
-	--strict true --coerce-types array --all-errors true --use-defaults empty \
-		-o ${1%.json}.js
-  
-  #cat ${1/schema/data}
-  
-  echo "test ${1}"
-  node --input-type=module -e "import validate from '${1%.json}.js'; import data from '${1/schema/data}' assert {type:'json'}; const valid = validate(data); console.log(valid, JSON.stringify(validate.errors))"
+bundle() {
+  local schema="$1"
+  local data="${schema/schema/data}"
+  local out="${schema%.json}.js"
+
+  echo "validate ${schema}"
+  node cli.js validate "${schema}" --valid \
+    --strict true --coerce-types array --all-errors --use-defaults empty
+
+  echo "sast ${schema}"
+  node cli.js sast "${schema}"
+
+  echo "transpile ${schema}"
+  node cli.js transpile "${schema}" \
+    --strict true --coerce-types array --all-errors --use-defaults empty \
+    -o "${out}"
+
+  echo "test ${schema}"
+  node --input-type=module -e "
+    import validate from '${out}';
+    import data from '${data}' with { type: 'json' };
+    const valid = validate(data);
+    console.log(valid, JSON.stringify(validate.errors));
+  "
+
+  rm -f "${out}"
 }
 
 bundle ./__test__/formats.schema.json
-

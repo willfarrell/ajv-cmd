@@ -1,6 +1,6 @@
 {
 	"name": "ajv-cmd",
-	"version": "0.11.0",
+	"version": "0.12.0",
 	"description": "Deref, Validate, Transpile, and Test JSON-Schema (.json) files using ajv",
 	"type": "module",
 	"engines": {
@@ -18,13 +18,14 @@
 		"index.js",
 		"compile.cjs",
 		"compile.js",
+		"deref.cjs",
+		"deref.js",
 		"ftl.cjs",
 		"ftl.js",
 		"transpile.cjs",
 		"transpile.js",
 		"validate.cjs",
 		"validate.js",
-		"sast.cjs",
 		"sast.js"
 	],
 	"main": "index.js",
@@ -64,9 +65,6 @@
 		"./sast": {
 			"import": {
 				"default": "./sast.js"
-			},
-			"require": {
-				"default": "./sast.cjs"
 			}
 		},
 		"./transpile": {
@@ -87,19 +85,21 @@
 		}
 	},
 	"scripts": {
-		"prepare": "husky",
+		"prepare": "husky || true",
 		"prepublishOnly": "npm run build",
-		"build": "npm run build:index && npm run build:compile && npm run build:ftl && npm run build:transpile && npm run build:validate && npm run build:sast",
+		"build": "npm run build:index && npm run build:compile && npm run build:deref && npm run build:ftl && npm run build:transpile && npm run build:validate",
 		"build:index": "./node_modules/.bin/esbuild index.js --platform=node --format=cjs  --target=node18 --allow-overwrite --outfile=index.cjs",
 		"build:compile": "./node_modules/.bin/esbuild compile.js --platform=node --format=cjs  --target=node18 --allow-overwrite --outfile=compile.cjs",
+		"build:deref": "./node_modules/.bin/esbuild deref.js --platform=node --format=cjs  --target=node18 --allow-overwrite --outfile=deref.cjs",
 		"build:ftl": "./node_modules/.bin/esbuild ftl.js --platform=node --format=cjs  --target=node18 --bundle --allow-overwrite --outfile=ftl.cjs",
 		"build:transpile": "./node_modules/.bin/esbuild transpile.js --platform=node --format=cjs  --target=node18 --allow-overwrite --outfile=transpile.cjs",
 		"build:validate": "./node_modules/.bin/esbuild validate.js --platform=node --format=cjs  --target=node18  --allow-overwrite --outfile=validate.cjs",
-		"build:sast": "./node_modules/.bin/esbuild sast.js --platform=node --format=cjs  --target=node18  --allow-overwrite --outfile=sast.cjs",
-		"test": "npm run test:lint && npm run test:unit && npm run test:types && npm run test:sast && npm run test:perf && npm run test:dast",
+		"pretest": "npm run build",
+		"test": "npm run test:lint && npm run test:unit && npm run test:e2e && npm run test:types && npm run test:sast && npm run test:perf && npm run test:dast",
 		"test:unit": "node --test --experimental-test-coverage --test-coverage-lines=95 --test-coverage-branches=90 --test-coverage-functions=90 ./*.test.js ./commands/*.test.js",
+		"test:e2e": "./__test__/e2e.sh",
 		"test:sast": "npm run test:sast:license && npm run test:sast:lockfile && npm run test:sast:semgrep && npm run test:sast:trufflehog && npm run test:sast:trivy",
-		"test:sast:license": "license-check-and-add check -f license.json",
+		"test:sast:license": "license-check-and-add check -f .license.config.json",
 		"test:sast:lockfile": "lockfile-lint --path package-lock.json --type npm --allowed-hosts npm --validate-https",
 		"test:sast:semgrep": "semgrep scan --config auto",
 		"test:sast:trivy": "trivy fs --scanners vuln,license --include-dev-deps --ignored-licenses 0BSD,Apache-2.0,BSD-1-Clause,BSD-2-Clause,BSD-3-Clause,CC0-1.0,CC-BY-4.0,ISC,MIT,Python-2.0 --exit-code 1 --disable-telemetry .",
@@ -111,13 +111,14 @@
 		"test:coverage": "node --test --experimental-test-coverage ./*.test.js ./commands/*.test.js",
 		"git:pre-commit": "npm run git:lint-staged && npm run git:test-staged",
 		"git:commit-msg": "commitlint --config commitlint.config.cjs --edit",
-		"git:lint-staged": "npm run test:lint",
+		"git:lint-staged": "npm run test:lint:staged",
 		"git:unit-staged": "node --test",
 		"git:test-staged": "npm run git:unit-staged",
 		"lint": "biome check --write --no-errors-on-unmatched",
-		"test:lint": "biome check --staged --no-errors-on-unmatched",
-		"release:license:add": "license-check-and-add add -f license.json",
-		"release:license:remove": "license-check-and-add remove -f license.json"
+		"test:lint": "biome ci --no-errors-on-unmatched",
+		"test:lint:staged": "biome check --staged --no-errors-on-unmatched",
+		"release:license:add": "license-check-and-add add -f .license.config.json",
+		"release:license:remove": "license-check-and-add remove -f .license.config.json"
 	},
 	"repository": {
 		"type": "git",
@@ -148,8 +149,7 @@
 		"ajv-keywords": "5.1.0",
 		"commander": "14.0.3",
 		"esbuild": "^0.28.0",
-		"redos-detector": "6.1.4",
-		"sast-json-schema": "^0.1.0"
+		"sast-json-schema": "0.2.3"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.0.0",

@@ -1,17 +1,11 @@
 // Copyright 2026 will Farrell, and ajv-cmd contributors.
 // SPDX-License-Identifier: MIT
-import { readFile, stat, writeFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import transpile from "../ftl.js";
+import { assertFile } from "./_utils.js";
 
-const fileExists = async (filepath) => {
-	const stats = await stat(filepath);
-	if (!stats.isFile()) {
-		throw new Error(`${filepath} is not a file`);
-	}
-};
-
-const ftl = async (input, options) => {
-	await fileExists(input);
+export default async (input, options) => {
+	await assertFile(input);
 
 	const ftl = await readFile(input, { encoding: "utf8" });
 
@@ -23,5 +17,3 @@ const ftl = async (input, options) => {
 	}
 	return js;
 };
-
-export default ftl;

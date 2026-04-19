@@ -364,7 +364,7 @@ test("cmd sast should add error when exclusiveMinimum >= exclusiveMaximum", asyn
 	try {
 		const result = await sastCmd(tempFile, { output: true });
 		ok(Array.isArray(result));
-		const err = result.find((e) => e.keyword === "minimum");
+		const err = result.find((e) => e.keyword === "exclusiveMaximum");
 		ok(err);
 		strictEqual(err.instancePath, "/properties/score");
 		strictEqual(err.params.exclusiveMinimum, 10);
@@ -394,7 +394,7 @@ test("cmd sast should add error when minimum >= exclusiveMaximum", async (t) => 
 	try {
 		const result = await sastCmd(tempFile, { output: true });
 		ok(Array.isArray(result));
-		const err = result.find((e) => e.keyword === "minimum");
+		const err = result.find((e) => e.keyword === "exclusiveMaximum");
 		ok(err);
 		strictEqual(err.instancePath, "/properties/score");
 		strictEqual(err.params.minimum, 10);
@@ -674,6 +674,156 @@ test("cmd sast should remove maxProperties error when override-max-properties al
 	}
 });
 
+test("cmd sast should ignore error by instancePath", async (t) => {
+	const _mockLog = t.mock.method(console, "log", () => {});
+	const schema = {
+		type: "object",
+		properties: {
+			name: {
+				type: "string",
+				maxLength: 100,
+				pattern: "[a-z]+\\w+",
+			},
+		},
+		required: ["name"],
+		maxProperties: 10,
+		unevaluatedProperties: false,
+	};
+	const tempFile = fixture("_ignore-path.schema.json");
+	await writeFile(tempFile, JSON.stringify(schema));
+	try {
+		const result = await sastCmd(tempFile, {
+			output: true,
+			ignore: ["/properties/name/pattern"],
+		});
+		if (result) {
+			const redosErr = result.find(
+				(e) => e.instancePath === "/properties/name/pattern",
+			);
+			strictEqual(redosErr, undefined);
+		}
+	} finally {
+		await unlink(tempFile).catch(() => {});
+	}
+});
+
+test("cmd sast should ignore error by instancePath:keyword", async (t) => {
+	const _mockLog = t.mock.method(console, "log", () => {});
+	const schema = {
+		type: "object",
+		properties: {
+			tags: {
+				type: "array",
+				items: { type: "string", maxLength: 50 },
+				minItems: 10,
+				maxItems: 3,
+			},
+		},
+		required: ["tags"],
+		maxProperties: 10,
+		unevaluatedProperties: false,
+	};
+	const tempFile = fixture("_ignore-keyword.schema.json");
+	await writeFile(tempFile, JSON.stringify(schema));
+	try {
+		const matched = await sastCmd(tempFile, {
+			output: true,
+			ignore: ["/properties/tags:minItems"],
+		});
+		const minItemsErr = matched?.find(
+			(e) => e.keyword === "minItems" && e.instancePath === "/properties/tags",
+		);
+		strictEqual(minItemsErr, undefined);
+
+		const unmatched = await sastCmd(tempFile, {
+			output: true,
+			ignore: ["/properties/tags:maxItems"],
+		});
+		ok(Array.isArray(unmatched));
+		const stillThere = unmatched.find(
+			(e) => e.keyword === "minItems" && e.instancePath === "/properties/tags",
+		);
+		ok(stillThere);
+	} finally {
+		await unlink(tempFile).catch(() => {});
+	}
+});
+
+test("cmd sast should not drop unrelated errors when --ignore is given", async (t) => {
+	const _mockLog = t.mock.method(console, "log", () => {});
+	const schema = {
+		type: "object",
+		properties: {
+			name: {
+				type: "string",
+				maxLength: 100,
+				pattern: "[a-z]+\\w+",
+			},
+			tags: {
+				type: "array",
+				items: { type: "string", maxLength: 50 },
+				minItems: 10,
+				maxItems: 3,
+			},
+		},
+		required: ["name", "tags"],
+		maxProperties: 10,
+		unevaluatedProperties: false,
+	};
+	const tempFile = fixture("_ignore-unrelated.schema.json");
+	await writeFile(tempFile, JSON.stringify(schema));
+	try {
+		const result = await sastCmd(tempFile, {
+			output: true,
+			ignore: ["/properties/name/pattern"],
+		});
+		ok(Array.isArray(result));
+		const redosErr = result.find(
+			(e) => e.instancePath === "/properties/name/pattern",
+		);
+		strictEqual(redosErr, undefined);
+		const minItemsErr = result.find(
+			(e) => e.keyword === "minItems" && e.instancePath === "/properties/tags",
+		);
+		ok(minItemsErr);
+	} finally {
+		await unlink(tempFile).catch(() => {});
+	}
+});
+
+test("cmd sast should be a no-op when --ignore is empty or undefined", async (t) => {
+	const _mockLog = t.mock.method(console, "log", () => {});
+	const schema = {
+		type: "object",
+		properties: {
+			name: {
+				type: "string",
+				maxLength: 100,
+				pattern: "[a-z]+\\w+",
+			},
+		},
+		required: ["name"],
+		maxProperties: 10,
+		unevaluatedProperties: false,
+	};
+	const tempFile = fixture("_ignore-empty.schema.json");
+	await writeFile(tempFile, JSON.stringify(schema));
+	try {
+		const resultEmpty = await sastCmd(tempFile, {
+			output: true,
+			ignore: [],
+		});
+		ok(Array.isArray(resultEmpty));
+		ok(resultEmpty.find((e) => e.instancePath === "/properties/name/pattern"));
+
+		const resultUndef = await sastCmd(tempFile, { output: true });
+		ok(Array.isArray(resultUndef));
+		ok(resultUndef.find((e) => e.instancePath === "/properties/name/pattern"));
+	} finally {
+		await unlink(tempFile).catch(() => {});
+	}
+});
+
 test("cmd sast should keep maxProperties error when override-max-properties is too low", async (t) => {
 	const _mockLog = t.mock.method(console, "log", () => {});
 	const constObj = {};
@@ -694,8 +844,7 @@ test("cmd sast should keep maxProperties error when override-max-properties is t
 		ok(Array.isArray(result));
 		const err = result.find(
 			(e) =>
-				e.schemaPath ===
-				"#/definitions/safeObjectPropertiesLimits/maxProperties",
+				e.schemaPath === "#/$defs/safeObjectPropertiesLimits/maxProperties",
 		);
 		ok(err);
 	} finally {

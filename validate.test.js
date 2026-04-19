@@ -54,7 +54,7 @@ test("validate should not mutate test data", async () => {
 	deepStrictEqual(testData, original);
 });
 
-test("validate default export should be test function", async () => {
+test("validate default export should be validate function", async () => {
 	const mod = await import("./validate.js");
-	strictEqual(mod.default, mod.test);
+	strictEqual(mod.default, mod.validate);
 });
