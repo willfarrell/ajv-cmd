@@ -166,7 +166,25 @@ program
 	.addOption(
 		new Option(
 			"--ignore <ignore...>",
-			"Suppress errors by `instancePath` or `instancePath:keyword` (exact match). Each ignored error is logged.",
+			"Suppress errors by `instancePath` or `instancePath:keyword` (exact match).",
+		),
+	)
+	.addOption(
+		new Option(
+			"--offline",
+			"Skip DNS lookups for remote $ref URLs (disables SSRF resolution).",
+		).preset(true),
+	)
+	.addOption(
+		new Option(
+			"--dns-timeout-ms <dnsTimeoutMs>",
+			"Per-hostname DNS lookup timeout in ms for SSRF checks (default 5000).",
+		),
+	)
+	.addOption(
+		new Option(
+			"--dns-concurrency <dnsConcurrency>",
+			"Max concurrent DNS lookups for SSRF checks (default 10).",
 		),
 	)
 	.addOption(

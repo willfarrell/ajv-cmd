@@ -364,7 +364,7 @@ test("cmd sast should add error when exclusiveMinimum >= exclusiveMaximum", asyn
 	try {
 		const result = await sastCmd(tempFile, { output: true });
 		ok(Array.isArray(result));
-		const err = result.find((e) => e.keyword === "minimum");
+		const err = result.find((e) => e.keyword === "exclusiveMaximum");
 		ok(err);
 		strictEqual(err.instancePath, "/properties/score");
 		strictEqual(err.params.exclusiveMinimum, 10);
@@ -394,7 +394,7 @@ test("cmd sast should add error when minimum >= exclusiveMaximum", async (t) => 
 	try {
 		const result = await sastCmd(tempFile, { output: true });
 		ok(Array.isArray(result));
-		const err = result.find((e) => e.keyword === "minimum");
+		const err = result.find((e) => e.keyword === "exclusiveMaximum");
 		ok(err);
 		strictEqual(err.instancePath, "/properties/score");
 		strictEqual(err.params.minimum, 10);
@@ -824,37 +824,6 @@ test("cmd sast should be a no-op when --ignore is empty or undefined", async (t)
 	}
 });
 
-test("cmd sast should log when an error is ignored", async (t) => {
-	const mockLog = t.mock.method(console, "log", () => {});
-	const schema = {
-		type: "object",
-		properties: {
-			name: {
-				type: "string",
-				maxLength: 100,
-				pattern: "[a-z]+\\w+",
-			},
-		},
-		required: ["name"],
-		maxProperties: 10,
-		unevaluatedProperties: false,
-	};
-	const tempFile = fixture("_ignore-log.schema.json");
-	await writeFile(tempFile, JSON.stringify(schema));
-	try {
-		await sastCmd(tempFile, {
-			output: true,
-			ignore: ["/properties/name/pattern"],
-		});
-		const logged = mockLog.mock.calls
-			.map((c) => c.arguments.join(" "))
-			.join("\n");
-		ok(/ignored .* at \/properties\/name\/pattern/.test(logged));
-	} finally {
-		await unlink(tempFile).catch(() => {});
-	}
-});
-
 test("cmd sast should keep maxProperties error when override-max-properties is too low", async (t) => {
 	const _mockLog = t.mock.method(console, "log", () => {});
 	const constObj = {};
@@ -875,8 +844,7 @@ test("cmd sast should keep maxProperties error when override-max-properties is t
 		ok(Array.isArray(result));
 		const err = result.find(
 			(e) =>
-				e.schemaPath ===
-				"#/definitions/safeObjectPropertiesLimits/maxProperties",
+				e.schemaPath === "#/$defs/safeObjectPropertiesLimits/maxProperties",
 		);
 		ok(err);
 	} finally {
