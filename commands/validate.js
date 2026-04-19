@@ -1,42 +1,19 @@
 // Copyright 2026 will Farrell, and ajv-cmd contributors.
 // SPDX-License-Identifier: MIT
-import { readFile, stat } from "node:fs/promises";
 import validate from "../validate.js";
-
-const fileExists = async (filepath) => {
-	const stats = await stat(filepath);
-	if (!stats.isFile()) {
-		throw new Error(`${filepath} is not a file`);
-	}
-};
+import { assertFile, loadRefSchemas, readJson } from "./_utils.js";
 
 export default async (input, options) => {
-	await fileExists(input);
+	await assertFile(input);
 
-	const jsonSchema = await readFile(input, { encoding: "utf8" }).then((res) =>
-		JSON.parse(res),
-	);
+	const jsonSchema = await readJson(input);
 
 	if (options?.refSchemaFiles) {
-		const refSchemas = [];
-		for (const schemaFilePath of options.refSchemaFiles) {
-			const refSchemaFile = await readFile(schemaFilePath, {
-				encoding: "utf8",
-			}).then((res) => JSON.parse(res));
-			refSchemas.push(refSchemaFile);
-		}
-		options.schemas = refSchemas;
+		options.schemas = await loadRefSchemas(options.refSchemaFiles);
 	}
 
 	if (options?.testDataFiles) {
-		const testDataFiles = [];
-		for (const testDataFilePath of options.testDataFiles) {
-			const testDataFile = await readFile(testDataFilePath, {
-				encoding: "utf8",
-			}).then((res) => JSON.parse(res));
-			testDataFiles.push(testDataFile);
-		}
-		options.testData = testDataFiles;
+		options.testData = await loadRefSchemas(options.testDataFiles);
 	}
 
 	const valid = await validate(jsonSchema, options);

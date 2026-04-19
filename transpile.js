@@ -73,26 +73,29 @@ export const transpile = async (schema, options = {}) => {
 	const bridgeFile = join(__dirname, `${bridgeModuleName}.cjs`);
 
 	const cleanupFiles = [file];
-	if (needsBridge) {
-		await writeFile(bridgeFile, bridgeModuleContent, "utf8");
-		cleanupFiles.push(bridgeFile);
+	if (needsBridge) cleanupFiles.push(bridgeFile);
+
+	try {
+		if (needsBridge) {
+			await writeFile(bridgeFile, bridgeModuleContent, "utf8");
+		}
+		await writeFile(file, js, "utf8");
+
+		await build({
+			entryPoints: [file],
+			platform: "node",
+			format: "esm",
+			bundle: true,
+			minify: true,
+			legalComments: "none",
+			allowOverwrite: true,
+			outfile: file,
+		});
+
+		js = await readFile(file, { encoding: "utf8" });
+	} finally {
+		await Promise.all(cleanupFiles.map((f) => unlink(f).catch(() => {})));
 	}
-
-	await writeFile(file, js, "utf8");
-
-	await build({
-		entryPoints: [file],
-		platform: "node",
-		format: "esm",
-		bundle: true,
-		minify: true,
-		legalComments: "none",
-		allowOverwrite: true,
-		outfile: file,
-	});
-
-	js = await readFile(file, { encoding: "utf8" });
-	await Promise.all(cleanupFiles.map((f) => unlink(f)));
 
 	return js;
 };
