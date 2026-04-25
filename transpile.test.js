@@ -98,3 +98,26 @@ test("transpile format:email still works (no regression)", async () => {
 	strictEqual(mod.default("user@example.com"), true);
 	strictEqual(mod.default("not-an-email"), false);
 });
+
+// non-draft2019 format that emits fullFormats.X — exercises the
+// "leave require() untouched" branch in fixDraft2019FormatRequires
+test("transpile format:uri produces working validator", async () => {
+	const js = await transpile(
+		{ type: "string", format: "uri" },
+		{ allErrors: true },
+	);
+	const mod = await importTranspiled(js);
+	strictEqual(mod.default("https://example.com/path"), true);
+	strictEqual(mod.default("not a uri"), false);
+});
+
+// non-draft2019 format that emits fullFormats["X"] (bracket form)
+test("transpile format:date-time produces working validator", async () => {
+	const js = await transpile(
+		{ type: "string", format: "date-time" },
+		{ allErrors: true },
+	);
+	const mod = await importTranspiled(js);
+	strictEqual(mod.default("2026-04-25T10:00:00Z"), true);
+	strictEqual(mod.default("not-a-date"), false);
+});
