@@ -1,7 +1,7 @@
 // Copyright 2026 will Farrell, and ajv-cmd contributors.
 // SPDX-License-Identifier: MIT
 import { randomBytes } from "node:crypto";
-import { readFile, unlink, writeFile } from "node:fs/promises";
+import { readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import standaloneCode from "ajv/dist/standalone/index.js";
@@ -94,7 +94,7 @@ export const transpile = async (schema, options = {}) => {
 
 		js = await readFile(file, { encoding: "utf8" });
 	} finally {
-		await Promise.all(cleanupFiles.map((f) => unlink(f).catch(() => {})));
+		await Promise.all(cleanupFiles.map((f) => rm(f, { force: true })));
 	}
 
 	return js;
