@@ -149,7 +149,7 @@
 		"ajv-keywords": "5.1.0",
 		"commander": "14.0.3",
 		"esbuild": "^0.28.0",
-		"sast-json-schema": "0.2.3"
+		"sast-json-schema": "0.2.4"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.0.0",
