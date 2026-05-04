@@ -190,7 +190,7 @@ program
 	.addOption(
 		new Option(
 			"--lang <lang>",
-			"Target language for deserialization-vector checks. One of: js, py, rb, rs, java, kotlin, clojure, cs, vb, fsharp, php, objc, swift, ex, lua, default. (default: \"default\" — union of all languages)",
+			'Target language for deserialization-vector checks. One of: js, py, rb, rs, java, kotlin, clojure, cs, vb, fsharp, php, objc, swift, ex, lua, default. (default: "default" — union of all languages)',
 		).default("default"),
 	)
 	.addOption(
