@@ -11,6 +11,18 @@ export default async (input, options) => {
 
 	if (options?.refSchemaFiles) {
 		options.schemas = await loadRefSchemas(options.refSchemaFiles);
+		if (options.schemas) {
+			const safeHostnames = new Set();
+			for (const schema of options.schemas) {
+				if (typeof schema.$id === "string") {
+					try {
+						const url = new URL(schema.$id);
+						if (url.hostname) safeHostnames.add(url.hostname);
+					} catch {}
+				}
+			}
+			options.safeHostnames = safeHostnames;
+		}
 	}
 
 	const errors = await analyze(jsonSchema, options);

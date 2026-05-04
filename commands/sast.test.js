@@ -824,6 +824,25 @@ test("cmd sast should be a no-op when --ignore is empty or undefined", async (t)
 	}
 });
 
+test("cmd sast should forward lang option to analyze", async (t) => {
+	const mockLog = t.mock.method(console, "log", () => {});
+	await sastCmd(fixture("secure.schema.json"), { lang: "py" });
+	ok(mockLog.mock.calls[0].arguments[1].includes("has no issues"));
+});
+
+test("cmd sast should throw on unknown lang", async () => {
+	await rejects(
+		() => sastCmd(fixture("secure.schema.json"), { lang: "cobol" }),
+		/unknown lang/i,
+	);
+});
+
+test("cmd sast should use default lang when lang option is omitted", async (t) => {
+	const mockLog = t.mock.method(console, "log", () => {});
+	await sastCmd(fixture("secure.schema.json"), {});
+	ok(mockLog.mock.calls[0].arguments[1].includes("has no issues"));
+});
+
 test("cmd sast should keep maxProperties error when override-max-properties is too low", async (t) => {
 	const _mockLog = t.mock.method(console, "log", () => {});
 	const constObj = {};
