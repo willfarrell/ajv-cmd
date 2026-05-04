@@ -6,6 +6,7 @@ import transpile from "./transpile.js";
 import validate from "./validate.js";
 
 const time = Number(process.env.BENCH_TIME ?? 5_000);
+const fastTime = Number(process.env.BENCH_FAST_TIME ?? 100);
 
 const simpleSchema = {
 	type: "object",
@@ -52,7 +53,7 @@ test("perf: compile", async () => {
 });
 
 test("perf: validation", async () => {
-	const bench = new Bench({ name: "validation", time });
+	const bench = new Bench({ name: "validation", time: fastTime });
 	const fn = compile(simpleSchema, { allErrors: true });
 
 	bench.add("validate valid data", () => {
@@ -85,7 +86,7 @@ test("perf: validate.test()", async () => {
 });
 
 test("perf: sast", async () => {
-	const bench = new Bench({ name: "sast", time });
+	const bench = new Bench({ name: "sast", time: fastTime });
 
 	bench.add("sast() + validate(schema)", () => {
 		const fn = sast();

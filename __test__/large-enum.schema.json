@@ -1111,6 +1111,7 @@
 		}
 	},
 	"required": ["status"],
+	"additionalProperties": false,
 	"maxProperties": 10,
 	"unevaluatedProperties": false
 }
