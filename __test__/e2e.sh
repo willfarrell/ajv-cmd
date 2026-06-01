@@ -11,7 +11,8 @@ bundle() {
     --strict true --coerce-types array --use-defaults empty
 
   echo "sast ${schema}"
-  node cli.js sast "${schema}"
+  # Redact the issues array to keep the console clean; keep the summary line.
+  node cli.js sast "${schema}" | awk '/ has issues /{sub(/ \[.*/, " [redacted]"); print; exit} {print}'
 
   echo "transpile ${schema}"
   node cli.js transpile "${schema}" \
