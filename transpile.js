@@ -1,15 +1,33 @@
 // Copyright 2026 will Farrell, and ajv-cmd contributors.
 // SPDX-License-Identifier: MIT
 import { randomBytes } from "node:crypto";
-import { readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import standaloneCode from "ajv/dist/standalone/index.js";
 import { build } from "esbuild";
 import { compile, instance } from "./compile.js";
 
-// required to ensure node_modules can be found
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// The entry/bridge files are written to a unique temp dir (never into the
+// installed package dir), so esbuild needs explicit roots to resolve the bare
+// dependency imports (ajv, ajv-formats, @silverbucket/ajv-formats-draft2019).
+// Collect every node_modules dir from this package upward to cover both flat
+// and hoisted install layouts.
+const collectNodePaths = (dir) => {
+	const paths = [];
+	let current = dir;
+	while (true) {
+		paths.push(join(current, "node_modules"));
+		const parent = dirname(current);
+		if (parent === current) break;
+		current = parent;
+	}
+	return paths;
+};
+const nodePaths = collectNodePaths(__dirname);
 
 const defaultOptions = {
 	code: {
@@ -69,11 +87,12 @@ export const transpile = async (schema, options = {}) => {
 
 	js = fixDraft2019FormatRequires(js);
 
-	const file = join(__dirname, `${randomBytes(16).toString("hex")}.js`);
-	const bridgeFile = join(__dirname, `${bridgeModuleName}.cjs`);
-
-	const cleanupFiles = [file];
-	if (needsBridge) cleanupFiles.push(bridgeFile);
+	// Per-call temp dir: avoids writing into the installed package directory
+	// (read-only/global installs, node_modules mutation) and avoids the
+	// fixed-name bridge file racing across concurrent transpile() calls.
+	const dir = await mkdtemp(join(tmpdir(), "ajv-cmd-"));
+	const file = join(dir, `${randomBytes(16).toString("hex")}.js`);
+	const bridgeFile = join(dir, `${bridgeModuleName}.cjs`);
 
 	try {
 		if (needsBridge) {
@@ -90,11 +109,12 @@ export const transpile = async (schema, options = {}) => {
 			legalComments: "none",
 			allowOverwrite: true,
 			outfile: file,
+			nodePaths,
 		});
 
 		js = await readFile(file, { encoding: "utf8" });
 	} finally {
-		await Promise.all(cleanupFiles.map((f) => rm(f, { force: true })));
+		await rm(dir, { recursive: true, force: true });
 	}
 
 	return js;

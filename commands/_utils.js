@@ -11,7 +11,11 @@ export const assertFile = async (filepath) => {
 
 export const readJson = async (filepath) => {
 	const raw = await readFile(filepath, { encoding: "utf8" });
-	return JSON.parse(raw);
+	try {
+		return JSON.parse(raw);
+	} catch (e) {
+		throw new Error(`Failed to parse JSON in ${filepath}: ${e.message}`);
+	}
 };
 
 export const loadRefSchemas = async (paths) => {

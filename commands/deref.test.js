@@ -38,20 +38,72 @@ test("cmd deref should return json when output is true", async () => {
 	ok(result.properties.sub);
 });
 
-test("cmd deref should load ref schema files with mockFetch", async (t) => {
+test("cmd deref should resolve an external $ref from a -r schema (cached, no network)", async (t) => {
 	const mockLog = t.mock.method(console, "log", () => {});
 	await derefCmd(fixture("ref-external-main.schema.json"), {
 		refSchemaFiles: [fixture("ref-external-part.schema.json")],
 	});
 	strictEqual(mockLog.mock.calls.length, 1);
+	// Assert the external $ref was actually inlined, not merely that something
+	// was logged: the resolved part schema contributes a `value` string property.
+	const parsed = JSON.parse(mockLog.mock.calls[0].arguments[0]);
+	strictEqual(parsed.properties.part.properties.value.type, "string");
+});
+
+test("cmd deref should not mutate the caller options object", async (t) => {
+	const _mockLog = t.mock.method(console, "log", () => {});
+	const options = {
+		refSchemaFiles: [fixture("ref-external-part.schema.json")],
+	};
+	await derefCmd(fixture("ref-external-main.schema.json"), options);
+	strictEqual("schemas" in options, false);
+});
+
+test("cmd deref --offline still resolves a remote $ref seeded via -r (no network)", async (t) => {
+	const mockLog = t.mock.method(console, "log", () => {});
+	const fetchMock = t.mock.method(globalThis, "fetch", async () => {
+		throw new Error("network call attempted while offline");
+	});
+	await derefCmd(fixture("ref-external-main.schema.json"), {
+		offline: true,
+		refSchemaFiles: [fixture("ref-external-part.schema.json")],
+	});
+	// Seeded schema resolved from the in-memory cache; the network was untouched.
+	strictEqual(fetchMock.mock.calls.length, 0);
+	const parsed = JSON.parse(mockLog.mock.calls[0].arguments[0]);
+	strictEqual(parsed.properties.part.properties.value.type, "string");
+});
+
+test("cmd deref --offline does not fetch a remote $ref", async (t) => {
+	const _mockLog = t.mock.method(console, "log", () => {});
+	const fetchMock = t.mock.method(globalThis, "fetch", async () => {
+		throw new Error("network call attempted while offline");
+	});
+	await rejects(() =>
+		derefCmd(fixture("ref-external-main.schema.json"), { offline: true }),
+	);
+	// The HTTP resolver is disabled, so fetch must never be invoked.
+	strictEqual(fetchMock.mock.calls.length, 0);
 });
 
 test("cmd deref should fall back to real fetch for uncached URLs", async (t) => {
-	const mockLog = t.mock.method(console, "log", () => {});
+	// simple.schema.json has no `$id`, so the cache is empty and the request for
+	// the external `$ref` falls through to the underlying fetch. Mock that fetch
+	// instead of hitting the network so the test is deterministic and offline.
+	const partSchema = await readFile(
+		fixture("ref-external-part.schema.json"),
+		"utf8",
+	);
+	const fetchMock = t.mock.method(globalThis, "fetch", async () => ({
+		status: 200,
+		body: true,
+		arrayBuffer: async () => new TextEncoder().encode(partSchema),
+	}));
+	t.mock.method(console, "log", () => {});
 	await derefCmd(fixture("ref-external-main.schema.json"), {
 		refSchemaFiles: [fixture("simple.schema.json")],
 	});
-	ok(mockLog.mock.calls.length >= 1);
+	ok(fetchMock.mock.calls.length >= 1);
 });
 
 test("cmd deref should throw for non-existent file", async () => {

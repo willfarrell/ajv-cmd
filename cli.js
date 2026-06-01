@@ -13,6 +13,24 @@ import validate from "./commands/validate.js";
 
 const { version } = createRequire(import.meta.url)("./package.json");
 
+// AJV options such as `strict` accept `true | false | "log"`. Commander passes
+// option arguments through as strings, so coerce the boolean-ish values to real
+// booleans while leaving recognized string modes (e.g. "log", "array", "empty")
+// untouched.
+const parseBoolish = (value) => {
+	if (value === "true") return true;
+	if (value === "false") return false;
+	return value;
+};
+
+const parseNumeric = (value) => {
+	const number = Number(value);
+	if (Number.isNaN(number)) {
+		throw new Error(`Expected a number, received "${value}"`);
+	}
+	return number;
+};
+
 const program = new Command()
 	.name("ajv")
 	.version(version)
@@ -33,32 +51,38 @@ program
 			"The schema in <input> can reference any of these schemas with $ref keyword.",
 		),
 	)
-	.addOption(new Option("--strict [strict]", "true/false/log").preset(true))
 	.addOption(
-		new Option("--all-errors", "collect all validation errors").preset(true),
+		new Option("--strict [strict]", "true/false/log")
+			.preset(true)
+			.argParser(parseBoolish),
 	)
 	.addOption(
 		new Option(
 			"--use-defaults [useDefaults]",
 			"replace missing properties/items with the values from default keyword",
-		).preset(true),
+		)
+			.preset(true)
+			.argParser(parseBoolish),
 	)
 	.addOption(
 		new Option(
 			"--coerce-types [coerceTypes]",
 			"change type of data to match type keyword",
-		).preset(true),
+		)
+			.preset(true)
+			.argParser(parseBoolish),
 	)
 	.addOption(
-		new Option("--messages", "do not include text messages in errors").preset(
-			true,
+		new Option(
+			"--no-messages",
+			"exclude human-readable text messages from errors",
 		),
 	)
 	.addOption(
 		new Option(
 			"--loop-enum <loopEnum>",
 			"max size of enum to compile to expression (rather than to loop)",
-		),
+		).argParser(parseNumeric),
 	)
 	.addOption(
 		new Option(
@@ -78,32 +102,38 @@ program
 			"The schema in <input> can reference any of these schemas with $ref keyword.",
 		),
 	)
-	.addOption(new Option("--strict [strict]", "true/false/log").preset(true))
 	.addOption(
-		new Option("--all-errors", "collect all validation errors").preset(true),
+		new Option("--strict [strict]", "true/false/log")
+			.preset(true)
+			.argParser(parseBoolish),
 	)
 	.addOption(
 		new Option(
 			"--use-defaults [useDefaults]",
 			"replace missing properties/items with the values from default keyword",
-		).preset(true),
+		)
+			.preset(true)
+			.argParser(parseBoolish),
 	)
 	.addOption(
 		new Option(
 			"--coerce-types [coerceTypes]",
 			"change type of data to match type keyword",
-		).preset(true),
+		)
+			.preset(true)
+			.argParser(parseBoolish),
 	)
 	.addOption(
-		new Option("--messages", "do not include text messages in errors").preset(
-			true,
+		new Option(
+			"--no-messages",
+			"exclude human-readable text messages from errors",
 		),
 	)
 	.addOption(
 		new Option(
 			"--loop-enum <loopEnum>",
 			"max size of enum to compile to expression (rather than to loop)",
-		),
+		).argParser(parseNumeric),
 	)
 	.addOption(
 		new Option(
@@ -124,6 +154,12 @@ program
 	)
 	.addOption(
 		new Option(
+			"--offline",
+			"Do not fetch remote $ref URLs over the network (resolve local/-r schemas only).",
+		).preset(true),
+	)
+	.addOption(
+		new Option(
 			"-o, --output <output>",
 			"Path to store the resulting JSON-Schema file.",
 		),
@@ -133,9 +169,6 @@ program
 program
 	.command("sast")
 	.argument("<input>", "Path to the JSON-Schema file to audit for security")
-	.addOption(
-		new Option("--all-errors", "collect all validation errors").preset(true),
-	)
 	.addOption(
 		new Option(
 			"-r, --ref-schema-files <refSchemaFiles...>",
@@ -149,19 +182,19 @@ program
 		new Option(
 			"--override-max-items <overrideMaxItems>",
 			"Override the max items limit (default 1024). Removes maxItems errors when the array size is within this limit. Values <= 1024 are a no-op.",
-		),
+		).argParser(parseNumeric),
 	)
 	.addOption(
 		new Option(
 			"--override-max-depth <overrideMaxDepth>",
 			"Override the max schema depth limit (default 32).",
-		),
+		).argParser(parseNumeric),
 	)
 	.addOption(
 		new Option(
 			"--override-max-properties <overrideMaxProperties>",
 			"Override the max properties limit (default 1024). Removes maxProperties errors when the property count is within this limit. Values <= 1024 are a no-op.",
-		),
+		).argParser(parseNumeric),
 	)
 	.addOption(
 		new Option(
@@ -179,13 +212,13 @@ program
 		new Option(
 			"--dns-timeout-ms <dnsTimeoutMs>",
 			"Per-hostname DNS lookup timeout in ms for SSRF checks (default 5000).",
-		),
+		).argParser(parseNumeric),
 	)
 	.addOption(
 		new Option(
 			"--dns-concurrency <dnsConcurrency>",
 			"Max concurrent DNS lookups for SSRF checks (default 10).",
-		),
+		).argParser(parseNumeric),
 	)
 	.addOption(
 		new Option(
@@ -216,4 +249,9 @@ program
 	)
 	.action(ftl);
 
-program.parse();
+// Surface command errors (missing files, invalid JSON, unresolved $refs, …) as
+// a clean message + non-zero exit instead of an unhandled-rejection stack trace.
+program.parseAsync().catch((error) => {
+	console.error(error.message);
+	process.exit(1);
+});

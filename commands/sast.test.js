@@ -18,7 +18,16 @@ test("cmd sast should report no issues for secure schema", async (t) => {
 test("cmd sast should detect issues in insecure schema", async (t) => {
 	const mockLog = t.mock.method(console, "log", () => {});
 	await sastCmd(fixture("insecure.schema.json"), {});
-	ok(mockLog.mock.calls.length >= 1);
+	strictEqual(mockLog.mock.calls.length, 1);
+	ok(mockLog.mock.calls[0].arguments[1].includes("has issues"));
+});
+
+test("cmd sast should not mutate the caller options object", async (t) => {
+	const _mockLog = t.mock.method(console, "log", () => {});
+	const options = { refSchemaFiles: [fixture("ref-main.schema.json")] };
+	await sastCmd(fixture("simple.schema.json"), options);
+	strictEqual("schemas" in options, false);
+	strictEqual("safeHostnames" in options, false);
 });
 
 test("cmd sast should write issues to output file", async (_t) => {

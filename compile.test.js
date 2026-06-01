@@ -41,6 +41,15 @@ test("compile should accept custom options", () => {
 	ok(typeof validate === "function");
 });
 
+test("compile should honor caller-supplied keywords", () => {
+	// Without honoring `keywords`, strict mode throws "unknown keyword".
+	const validate = compile(
+		{ type: "object", properties: { a: { type: "string", myKeyword: true } } },
+		{ keywords: [{ keyword: "myKeyword", validate: () => true }] },
+	);
+	strictEqual(typeof validate, "function");
+});
+
 test("compile default export should be compile function", async () => {
 	const mod = await import("./compile.js");
 	strictEqual(mod.default, mod.compile);

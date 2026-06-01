@@ -1,12 +1,11 @@
 {
 	"name": "ajv-cmd",
-	"version": "0.13.3",
+	"version": "0.14.0",
 	"description": "Deref, Validate, Transpile, and Test JSON-Schema (.json) files using ajv",
 	"type": "module",
 	"engines": {
 		"node": ">=24"
 	},
-	"engineStrict": true,
 	"bin": {
 		"ajv": "cli.js"
 	},
@@ -14,97 +13,39 @@
 		"cli.js",
 		"commands/*.js",
 		"!commands/*.test.js",
-		"index.cjs",
 		"index.js",
-		"compile.cjs",
 		"compile.js",
-		"deref.cjs",
 		"deref.js",
-		"ftl.cjs",
 		"ftl.js",
-		"transpile.cjs",
 		"transpile.js",
-		"validate.cjs",
 		"validate.js",
 		"sast.js"
 	],
 	"main": "index.js",
 	"exports": {
-		".": {
-			"import": {
-				"default": "./index.js"
-			},
-			"require": {
-				"default": "./index.cjs"
-			}
-		},
-		"./compile": {
-			"import": {
-				"default": "./compile.js"
-			},
-			"require": {
-				"default": "./compile.cjs"
-			}
-		},
-		"./deref": {
-			"import": {
-				"default": "./deref.js"
-			},
-			"require": {
-				"default": "./deref.cjs"
-			}
-		},
-		"./ftl": {
-			"import": {
-				"default": "./ftl.js"
-			},
-			"require": {
-				"default": "./ftl.cjs"
-			}
-		},
-		"./sast": {
-			"import": {
-				"default": "./sast.js"
-			}
-		},
-		"./transpile": {
-			"import": {
-				"default": "./transpile.js"
-			},
-			"require": {
-				"default": "./transpile.cjs"
-			}
-		},
-		"./validate": {
-			"import": {
-				"default": "./validate.js"
-			},
-			"require": {
-				"default": "./validate.cjs"
-			}
-		}
+		".": "./index.js",
+		"./compile": "./compile.js",
+		"./deref": "./deref.js",
+		"./ftl": "./ftl.js",
+		"./sast": "./sast.js",
+		"./transpile": "./transpile.js",
+		"./validate": "./validate.js"
 	},
 	"scripts": {
 		"prepare": "husky || true",
-		"prepublishOnly": "npm run build",
-		"build": "npm run build:index && npm run build:compile && npm run build:deref && npm run build:ftl && npm run build:transpile && npm run build:validate",
-		"build:index": "./node_modules/.bin/esbuild index.js --platform=node --format=cjs  --target=node18 --allow-overwrite --outfile=index.cjs",
-		"build:compile": "./node_modules/.bin/esbuild compile.js --platform=node --format=cjs  --target=node18 --allow-overwrite --outfile=compile.cjs",
-		"build:deref": "./node_modules/.bin/esbuild deref.js --platform=node --format=cjs  --target=node18 --allow-overwrite --outfile=deref.cjs",
-		"build:ftl": "./node_modules/.bin/esbuild ftl.js --platform=node --format=cjs  --target=node18 --bundle --allow-overwrite --outfile=ftl.cjs",
-		"build:transpile": "./node_modules/.bin/esbuild transpile.js --platform=node --format=cjs  --target=node18 --allow-overwrite --outfile=transpile.cjs",
-		"build:validate": "./node_modules/.bin/esbuild validate.js --platform=node --format=cjs  --target=node18  --allow-overwrite --outfile=validate.cjs",
-		"pretest": "npm run build",
-		"test": "npm run test:lint && npm run test:unit && npm run test:e2e && npm run test:types && npm run test:sast && npm run test:perf && npm run test:dast",
-		"test:unit": "node --test --experimental-test-coverage --test-coverage-lines=95 --test-coverage-branches=90 --test-coverage-functions=90 ./*.test.js ./commands/*.test.js",
+		"test": "npm run test:lint && npm run test:unit && npm run test:mutation && npm run test:e2e && npm run test:types && npm run test:sast && npm run test:perf && npm run test:dast",
+		"test:unit": "node --test --experimental-test-coverage --test-coverage-lines=100 --test-coverage-branches=100 --test-coverage-functions=100 ./*.test.js ./commands/*.test.js",
+		"test:mutation": "stryker run",
 		"test:e2e": "./__test__/e2e.sh",
 		"test:sast": "npm run test:sast:license && npm run test:sast:lockfile && npm run test:sast:semgrep && npm run test:sast:trufflehog && npm run test:sast:gitleaks && npm run test:sast:actionlint && npm run test:sast:zizmor && npm run test:sast:trivy",
 		"test:sast:actionlint": "actionlint",
-		"test:sast:gitleaks": "gitleaks detect --source . --redact --no-banner",
+		"test:sast:gitleaks": "npm run test:sast:gitleaks:dir && npm run test:sast:gitleaks:git",
+		"test:sast:gitleaks:dir": "gitleaks dir . --redact --no-banner",
+		"test:sast:gitleaks:git": "gitleaks git . --redact --no-banner",
 		"test:sast:license": "license-check-and-add check -f .license.config.json",
 		"test:sast:lockfile": "lockfile-lint --path package-lock.json --type npm --allowed-hosts npm --validate-https",
-		"test:sast:semgrep": "semgrep scan --config auto",
-		"test:sast:trivy": "trivy fs --scanners vuln,license --include-dev-deps --ignored-licenses 0BSD,Apache-2.0,BSD-1-Clause,BSD-2-Clause,BSD-3-Clause,CC0-1.0,CC-BY-4.0,ISC,MIT,Python-2.0 --exit-code 1 --disable-telemetry .",
+		"test:sast:semgrep": "semgrep scan --config auto --error",
+		"test:sast:trivy": "trivy fs --scanners vuln,license --include-dev-deps --ignored-licenses 0BSD,Apache-2.0,BSD-1-Clause,BSD-2-Clause,BSD-3-Clause,CC0-1.0,CC-BY-4.0,ISC,MIT,Python-2.0,LGPL-3.0-or-later,MPL-2.0,BlueOak-1.0.0,Unlicense --exit-code 1 --skip-files '**/bun.lock' --disable-telemetry .",
 		"test:sast:trufflehog": "trufflehog filesystem --only-verified --log-level=-1 ./",
 		"test:sast:zizmor": "zizmor .github/workflows/",
 		"test:types": "tstyche",
@@ -154,19 +95,23 @@
 		"ajv-ftl-i18n": "0.2.1",
 		"ajv-i18n": "4.2.0",
 		"ajv-keywords": "5.1.0",
-		"commander": "14.0.3",
-		"esbuild": "^0.28.0",
-		"sast-json-schema": "^0.4.0"
+		"commander": "15.0.0",
+		"esbuild": "0.28.0",
+		"sast-json-schema": "0.4.1"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.0.0",
 		"@commitlint/cli": "^21.0.0",
 		"@commitlint/config-conventional": "^21.0.0",
+		"@stryker-mutator/core": "^9.0.0",
 		"fast-check": "^4.0.0",
 		"husky": "^9.0.0",
 		"license-check-and-add": "4.0.5",
 		"tinybench": "^6.0.0",
 		"tstyche": "^7.0.0"
+	},
+	"overrides": {
+		"qs": "^6.15.2"
 	},
 	"devEngines": {
 		"runtime": {

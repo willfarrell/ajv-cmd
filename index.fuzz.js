@@ -71,13 +71,17 @@ test("fuzz validate w/ random data against schema", async () => {
 
 	await fc.assert(
 		fc.asyncProperty(fc.anything(), async (data) => {
+			let valid;
 			try {
-				const valid = fn(data);
-				if (typeof valid !== "boolean") {
-					throw new Error(`Expected boolean, got ${typeof valid}`);
-				}
+				valid = fn(data);
 			} catch (e) {
 				catchError(data, e);
+				return;
+			}
+			// Invariant check OUTSIDE the try: a failure here is a real bug and
+			// must not be swallowed by catchError's allowlist.
+			if (typeof valid !== "boolean") {
+				throw new Error(`Expected boolean, got ${typeof valid}`);
 			}
 		}),
 		{
@@ -102,13 +106,15 @@ test("fuzz validate.test w/ random test data", async (t) => {
 		fc.asyncProperty(
 			fc.array(fc.anything(), { minLength: 0, maxLength: 5 }),
 			async (testData) => {
+				let result;
 				try {
-					const result = await validate(schema, { testData });
-					if (typeof result !== "boolean") {
-						throw new Error(`Expected boolean, got ${typeof result}`);
-					}
+					result = await validate(schema, { testData });
 				} catch (e) {
 					catchError(testData, e);
+					return;
+				}
+				if (typeof result !== "boolean") {
+					throw new Error(`Expected boolean, got ${typeof result}`);
 				}
 			},
 		),
@@ -150,14 +156,16 @@ test("fuzz sast w/ random schemas", async () => {
 				),
 			}),
 			async (schema) => {
+				let valid;
 				try {
 					const fn = sast();
-					const valid = fn(schema);
-					if (typeof valid !== "boolean") {
-						throw new Error(`Expected boolean, got ${typeof valid}`);
-					}
+					valid = fn(schema);
 				} catch (e) {
 					catchError(schema, e);
+					return;
+				}
+				if (typeof valid !== "boolean") {
+					throw new Error(`Expected boolean, got ${typeof valid}`);
 				}
 			},
 		),
@@ -182,13 +190,15 @@ test("fuzz instance w/ random options", async () => {
 				}),
 			}),
 			async (options) => {
+				let ajv;
 				try {
-					const ajv = instance(options);
-					if (typeof ajv.compile !== "function") {
-						throw new Error("Expected ajv instance");
-					}
+					ajv = instance(options);
 				} catch (e) {
 					catchError(options, e);
+					return;
+				}
+				if (typeof ajv.compile !== "function") {
+					throw new Error("Expected ajv instance");
 				}
 			},
 		),

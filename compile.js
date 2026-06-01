@@ -13,7 +13,10 @@ const defaultOptions = {
 
 /** @returns {Ajv2020} */
 export const instance = (options = {}) => {
-	options = { ...defaultOptions, ...options, keywords: [] };
+	// Default `keywords` to [] — custom keywords are normally registered by the
+	// ajv-keywords plugin below, not via the constructor option — but respect any
+	// caller-supplied `keywords` rather than silently discarding them.
+	options = { ...defaultOptions, ...options, keywords: options.keywords ?? [] };
 
 	const ajv = new Ajv(options);
 	ajvFormats(ajv);
@@ -24,7 +27,7 @@ export const instance = (options = {}) => {
 };
 
 export const compile = (schema, options = {}) => {
-	options = { ...defaultOptions, ...options, keywords: [] };
+	options = { ...defaultOptions, ...options };
 	const ajv = instance(options);
 	return ajv.compile(schema);
 };

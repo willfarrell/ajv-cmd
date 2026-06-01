@@ -54,6 +54,17 @@ test("validate should not mutate test data", async () => {
 	deepStrictEqual(testData, original);
 });
 
+test("validate should not throw on non-cloneable test data", async (t) => {
+	t.mock.method(console, "error", () => {});
+	const schema = { type: "object", properties: { value: {} } };
+	// A function is not structuredClone-able; validate() must fall back instead
+	// of throwing DataCloneError.
+	const result = await validate(schema, {
+		testData: [{ value: () => {} }],
+	});
+	strictEqual(typeof result, "boolean");
+});
+
 test("validate default export should be validate function", async () => {
 	const mod = await import("./validate.js");
 	strictEqual(mod.default, mod.validate);

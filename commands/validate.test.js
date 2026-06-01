@@ -79,6 +79,29 @@ test("cmd validate should validate with test data files", async (t) => {
 	ok(mockLog.mock.calls[0].arguments[1].includes("valid, success"));
 });
 
+test("cmd validate should exit(1) for an uncompilable schema regardless of flags", async (t) => {
+	const _mockError = t.mock.method(console, "error", () => {});
+	const mockExit = t.mock.method(process, "exit", () => {});
+	await validateCmd(fixture("uncompilable.schema.json"), {});
+	strictEqual(mockExit.mock.calls.length, 1);
+	strictEqual(mockExit.mock.calls[0].arguments[0], 1);
+});
+
+test("cmd validate should exit(1) for an uncompilable schema even with --invalid", async (t) => {
+	const _mockError = t.mock.method(console, "error", () => {});
+	const mockExit = t.mock.method(process, "exit", () => {});
+	await validateCmd(fixture("uncompilable.schema.json"), { invalid: true });
+	strictEqual(mockExit.mock.calls.length, 1);
+	strictEqual(mockExit.mock.calls[0].arguments[0], 1);
+});
+
+test("cmd validate should not mutate the caller options object", async (t) => {
+	const _mockLog = t.mock.method(console, "log", () => {});
+	const options = { refSchemaFiles: [fixture("ref-main.schema.json")] };
+	await validateCmd(fixture("simple.schema.json"), options);
+	strictEqual("schemas" in options, false);
+});
+
 test("cmd validate should throw for non-existent file", async () => {
 	await rejects(() => validateCmd(fixture("nonexistent.json"), {}), {
 		code: "ENOENT",

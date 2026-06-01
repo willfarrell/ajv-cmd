@@ -29,6 +29,35 @@ test("cmd transpile should write output to file", async () => {
 	}
 });
 
+test("cmd transpile should return js when output is true", async (t) => {
+	const _mockLog = t.mock.method(console, "log", () => {});
+	const result = await transpileCmd(fixture("simple.schema.json"), {
+		output: true,
+		allErrors: true,
+	});
+	ok(typeof result === "string");
+	ok(result.includes("export"));
+});
+
+test("cmd transpile should reject when the output path is unwritable", async () => {
+	await rejects(() =>
+		transpileCmd(fixture("simple.schema.json"), {
+			output: fixture("no-such-dir/out.js"),
+			allErrors: true,
+		}),
+	);
+});
+
+test("cmd transpile should not mutate the caller options object", async (t) => {
+	const _mockLog = t.mock.method(console, "log", () => {});
+	const options = {
+		refSchemaFiles: [fixture("ref-main.schema.json")],
+		allErrors: true,
+	};
+	await transpileCmd(fixture("simple.schema.json"), options);
+	strictEqual("schemas" in options, false);
+});
+
 test("cmd transpile should load ref schema files", async (t) => {
 	const mockLog = t.mock.method(console, "log", () => {});
 	await transpileCmd(fixture("simple.schema.json"), {

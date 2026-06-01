@@ -8,7 +8,7 @@ on:
       - 'package.json'
 
 env:
-  NODE_VERSION: 24.x
+  NODE_VERSION: 26.x
 
 permissions:
   contents: read
@@ -43,17 +43,23 @@ jobs:
           tag=$(npm pkg get version | xargs)
           echo "tag=${tag}" >> "$GITHUB_ENV"
           echo "prerelease=$([ "${tag##*-*}" ] && echo false || echo true)" >> "$GITHUB_ENV"
+          published=$(npm view "$(npm pkg get name | xargs)@${tag}" version 2>/dev/null || true)
+          echo "should_release=$([ -z "$published" ] && echo true || echo false)" >> "$GITHUB_ENV"
       - name: Install dependencies
+        if: ${{ env.should_release == 'true' }}
         run: |
           npm ci
       - name: Verify dependency signatures
+        if: ${{ env.should_release == 'true' }}
         run: |
           npm audit signatures
       - name: Build
+        if: ${{ env.should_release == 'true' }}
         run: |
           npm run build --if-present
       - name: Pack
         id: pack
+        if: ${{ env.should_release == 'true' }}
         run: |
           {
             echo "packages<<EOF"
@@ -61,24 +67,28 @@ jobs:
             echo EOF
           } >> "$GITHUB_OUTPUT"
       - name: Build Attestations
+        if: ${{ env.should_release == 'true' }}
         uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
         with:
           subject-path: |
             **/*.tgz
       - name: Upload artifact
+        if: ${{ env.should_release == 'true' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ env.tag }}
           path: |
-            **/package.json
-            **/*.tgz
+            package.json
+            *.tgz
     outputs:
       tag: ${{ env.tag }}
       prerelease: ${{ env.prerelease }}
+      should_release: ${{ env.should_release }}
 
   release:
     name: Release
     needs: build
+    if: ${{ needs.build.outputs.should_release == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -100,7 +110,7 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0 # zizmor: ignore[superfluous-actions] prefer maintained action over inline `gh release` script
         with:
-          draft: true
+          draft: false
           prerelease: ${{ needs.build.outputs.prerelease }}
           tag_name: ${{ needs.build.outputs.tag }}
           generate_release_notes: true
@@ -109,10 +119,12 @@ jobs:
     outputs:
       tag: ${{ needs.build.outputs.tag }}
       prerelease: ${{ needs.build.outputs.prerelease }}
+      should_release: ${{ needs.build.outputs.should_release }}
 
   publish:
     name: Publish
     needs: release
+    if: ${{ needs.release.outputs.should_release == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -137,12 +149,18 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          count=$(find . -name '*.tgz' | wc -l)
+          if [ "$count" -eq 0 ]; then echo "::error::no .tgz artifact found"; exit 1; fi
           find . -name '*.tgz' -print -exec gh attestation verify {} --repo ${{ github.repository }} \;
       - name: npm publish (next)
         if: ${{ needs.release.outputs.prerelease == 'true' }}
         run: |
+          count=$(find . -name '*.tgz' | wc -l)
+          if [ "$count" -eq 0 ]; then echo "::error::no .tgz artifact found"; exit 1; fi
           find . -name '*.tgz' -exec npm publish --tag next --provenance --access public {} \;
       - name: npm publish (latest)
         if: ${{ needs.release.outputs.prerelease == 'false' }}
         run: |
+          count=$(find . -name '*.tgz' | wc -l)
+          if [ "$count" -eq 0 ]; then echo "::error::no .tgz artifact found"; exit 1; fi
           find . -name '*.tgz' -exec npm publish --tag latest --provenance --access public {} \;

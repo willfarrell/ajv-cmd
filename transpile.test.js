@@ -1,6 +1,6 @@
 import { ok, strictEqual } from "node:assert";
 import { randomBytes } from "node:crypto";
-import { unlink, writeFile } from "node:fs/promises";
+import { readdir, unlink, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
@@ -36,6 +36,35 @@ test("transpile should accept custom options", async () => {
 test("transpile default export should be transpile function", async () => {
 	const mod = await import("./transpile.js");
 	strictEqual(mod.default, mod.transpile);
+});
+
+test("transpile handles concurrent draft2019 calls without racing on the bridge", async () => {
+	// Previously all concurrent calls shared a fixed-name bridge file in the
+	// package dir; one call's cleanup deleted it mid-build of another, failing
+	// with "Could not resolve ./formats-draft2019-bridge.cjs".
+	const schema = {
+		type: "object",
+		properties: {
+			e: { type: "string", format: "idn-email" },
+			h: { type: "string", format: "idn-hostname" },
+		},
+	};
+	const results = await Promise.all(
+		Array.from({ length: 16 }, () =>
+			transpile(structuredClone(schema), { allErrors: true }),
+		),
+	);
+	strictEqual(results.length, 16);
+	for (const js of results) ok(js.includes("export"));
+});
+
+test("transpile does not write into the package directory", async () => {
+	const before = new Set(await readdir(__dirname));
+	await transpile({ type: "string", format: "iri" }, { allErrors: true });
+	const after = await readdir(__dirname);
+	for (const entry of after) {
+		ok(before.has(entry), `unexpected file left in package dir: ${entry}`);
+	}
 });
 
 // draft2019 format tests (https://github.com/willfarrell/ajv-cmd/issues/3)

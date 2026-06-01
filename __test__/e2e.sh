@@ -8,14 +8,14 @@ bundle() {
 
   echo "validate ${schema}"
   node cli.js validate "${schema}" --valid \
-    --strict true --coerce-types array --all-errors --use-defaults empty
+    --strict true --coerce-types array --use-defaults empty
 
   echo "sast ${schema}"
   node cli.js sast "${schema}"
 
   echo "transpile ${schema}"
   node cli.js transpile "${schema}" \
-    --strict true --coerce-types array --all-errors --use-defaults empty \
+    --strict true --coerce-types array --use-defaults empty \
     -o "${out}"
 
   echo "test ${schema}"
@@ -23,7 +23,19 @@ bundle() {
     import validate from '${out}';
     import data from '${data}' with { type: 'json' };
     const valid = validate(data);
-    console.log(valid, JSON.stringify(validate.errors));
+    const errors = validate.errors ?? [];
+    console.log(valid, JSON.stringify(errors));
+    // The fixture's \`errorMessage\` field intentionally violates type:null to
+    // exercise the custom 'ftl' errorMessage, so the validator MUST reject and
+    // surface that message. Assert it instead of just printing.
+    if (valid !== false) {
+      console.error('FAIL: expected the transpiled validator to reject the fixture');
+      process.exit(1);
+    }
+    if (!errors.some((e) => e.message === 'ftl')) {
+      console.error('FAIL: expected the custom \"ftl\" errorMessage');
+      process.exit(1);
+    }
   "
 
   rm -f "${out}"

@@ -4,12 +4,15 @@ import { writeFile } from "node:fs/promises";
 import { analyze } from "../sast.js";
 import { assertFile, loadRefSchemas, readJson } from "./_utils.js";
 
-export default async (input, options) => {
+export default async (input, options = {}) => {
 	await assertFile(input);
+
+	// Work on a copy so we never mutate the caller-supplied options object.
+	options = { ...options };
 
 	const jsonSchema = await readJson(input);
 
-	if (options?.refSchemaFiles) {
+	if (options.refSchemaFiles) {
 		options.schemas = await loadRefSchemas(options.refSchemaFiles);
 		if (options.schemas) {
 			const safeHostnames = new Set();
