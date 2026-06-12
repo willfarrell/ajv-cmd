@@ -12,6 +12,10 @@ env:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   trivy-vuln:
     name: "Trivy: SCA"
@@ -160,7 +164,7 @@ jobs:
     name: 'semgrep: SAST'
     runs-on: ubuntu-latest
     container:
-      image: semgrep/semgrep:1.111.0
+      image: semgrep/semgrep@sha256:3e6e5065d9e68abffddffdb536a8db2d79a8fa92dc424daa48d3a4b7d9bc65d0 # v1.111.0
     if: (github.actor != 'dependabot[bot]')
     steps:
       # harden-runner skipped: this job runs in a container; harden-runner patches the host runner.
