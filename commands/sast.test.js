@@ -33,14 +33,13 @@ test("cmd sast should not mutate the caller options object", async (t) => {
 test("cmd sast should write issues to output file", async (_t) => {
 	const outputPath = fixture("_sast_output.json");
 	try {
+		// insecure.schema.json always produces issues, so a string `output` must
+		// write them to that file. Dies if the `typeof output === "string"` branch
+		// is skipped/inverted (issues would be logged instead of written).
 		await sastCmd(fixture("insecure.schema.json"), { output: outputPath });
-		try {
-			const content = await readFile(outputPath, "utf8");
-			const parsed = JSON.parse(content);
-			ok(Array.isArray(parsed));
-		} catch {
-			// No issues found, file not written
-		}
+		const parsed = JSON.parse(await readFile(outputPath, "utf8"));
+		ok(Array.isArray(parsed));
+		ok(parsed.length > 0);
 	} finally {
 		await unlink(outputPath).catch(() => {});
 	}
@@ -58,8 +57,50 @@ test("cmd sast should return errors when output is true", async (t) => {
 
 test("cmd sast should exit(1) with --fail when issues found", async (t) => {
 	const _mockLog = t.mock.method(console, "log", () => {});
-	const _mockExit = t.mock.method(process, "exit", () => {});
+	const mockExit = t.mock.method(process, "exit", () => {});
 	await sastCmd(fixture("insecure.schema.json"), { fail: true });
+	strictEqual(mockExit.mock.calls.length, 1);
+	strictEqual(mockExit.mock.calls[0].arguments[0], 1);
+});
+
+test("cmd sast tolerates an empty -r list (no schemas to seed)", async (t) => {
+	const mockLog = t.mock.method(console, "log", () => {});
+	// refSchemaFiles:[] makes loadRefSchemas return undefined, so the
+	// safeHostnames loop must stay guarded — forcing `if (options.schemas)` true
+	// would iterate undefined and throw. A clean run kills that mutant.
+	await sastCmd(fixture("secure.schema.json"), { refSchemaFiles: [] });
+	ok(mockLog.mock.calls[0].arguments[1].includes("has no issues"));
+});
+
+test("cmd sast treats a -r schema's $id host as safe (suppresses SSRF)", async (_t) => {
+	// A $ref to https://localhost/... normally trips the SSRF check (localhost
+	// resolves to a private IP). Seeding a -r schema whose $id is that URL marks
+	// "localhost" safe, so the finding is suppressed. This dies if the
+	// safeHostnames-building block is skipped, or the $id/hostname guards inside
+	// it are inverted — the SSRF error reappears.
+	const main = {
+		type: "object",
+		properties: { sub: { $ref: "https://localhost/schemas/evil" } },
+		required: ["sub"],
+		maxProperties: 10,
+		unevaluatedProperties: false,
+	};
+	const part = { $id: "https://localhost/schemas/evil", type: "object" };
+	const mainFile = fixture("_safehost_main.schema.json");
+	const partFile = fixture("_safehost_part.schema.json");
+	await writeFile(mainFile, JSON.stringify(main));
+	await writeFile(partFile, JSON.stringify(part));
+	try {
+		const result = await sastCmd(mainFile, {
+			output: true,
+			refSchemaFiles: [partFile],
+		});
+		const ssrf = (result ?? []).filter((e) => e.keyword === "ssrf");
+		strictEqual(ssrf.length, 0);
+	} finally {
+		await unlink(mainFile).catch(() => {});
+		await unlink(partFile).catch(() => {});
+	}
 });
 
 test("cmd sast should load ref schema files", async (t) => {

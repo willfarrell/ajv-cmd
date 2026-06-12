@@ -16,6 +16,8 @@ test("cmd deref should deref schema to stdout", async (t) => {
 	ok(typeof output === "string");
 	const parsed = JSON.parse(output);
 	ok(parsed.properties.sub);
+	// Pretty-printed (2-space indent), matching the sast command's output style.
+	strictEqual(output, JSON.stringify(parsed, null, 2));
 });
 
 test("cmd deref should write output to file", async () => {
@@ -25,6 +27,8 @@ test("cmd deref should write output to file", async () => {
 		const content = await readFile(outputPath, "utf8");
 		const parsed = JSON.parse(content);
 		ok(parsed.properties.sub);
+		// Pretty-printed (2-space indent), matching the sast command's output style.
+		strictEqual(content, JSON.stringify(parsed, null, 2));
 	} finally {
 		await unlink(outputPath).catch(() => {});
 	}

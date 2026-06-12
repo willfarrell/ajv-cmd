@@ -1,6 +1,7 @@
-import { ok, strictEqual } from "node:assert";
+import { doesNotMatch, ok, strictEqual } from "node:assert";
 import { randomBytes } from "node:crypto";
-import { readdir, unlink, writeFile } from "node:fs/promises";
+import { mkdtemp, readdir, rm, unlink, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
@@ -56,6 +57,39 @@ test("transpile handles concurrent draft2019 calls without racing on the bridge"
 	);
 	strictEqual(results.length, 16);
 	for (const js of results) ok(js.includes("export"));
+});
+
+test("transpile creates no temp files at all", async () => {
+	// Point os.tmpdir() at a private sandbox so only THIS transpile() call could
+	// write here — isolating the check from transpile() calls in other test
+	// files (e.g. the cli subprocess tests) that race on the shared os.tmpdir().
+	// The build runs fully in memory (esbuild stdin + write: false).
+	const sandbox = await mkdtemp(join(tmpdir(), "ajv-cmd-cleanup-test-"));
+	const savedTmpdir = process.env.TMPDIR;
+	process.env.TMPDIR = sandbox;
+	try {
+		await transpile({ type: "string" }, { allErrors: true });
+		const leftover = await readdir(sandbox);
+		strictEqual(leftover.length, 0, `temp files created: ${leftover}`);
+	} finally {
+		if (savedTmpdir === undefined) delete process.env.TMPDIR;
+		else process.env.TMPDIR = savedTmpdir;
+		await rm(sandbox, { recursive: true, force: true });
+	}
+});
+
+test("transpile output is minified", async () => {
+	const js = await transpile(simpleSchema, { allErrors: true });
+	// Minified output carries no indentation; an unminified bundle has plenty.
+	doesNotMatch(js, /\n\s+\S/);
+});
+
+test("transpile does not bundle draft2019 formats a schema never uses", async () => {
+	const js = await transpile(simpleSchema, { allErrors: true });
+	// The draft2019 helper pulls in @silverbucket/ajv-formats-draft2019, whose
+	// format names would survive minification — a schema with no such format
+	// must not pay that size cost.
+	doesNotMatch(js, /idn-email|idn-hostname/);
 });
 
 test("transpile does not write into the package directory", async () => {

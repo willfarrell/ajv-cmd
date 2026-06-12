@@ -1,7 +1,10 @@
 name: Tests (perf)
 
 on:
+  push:
+    branches: [main]
   pull_request:
+  workflow_dispatch:
 
 env:
   NODE_VERSION: 26.x

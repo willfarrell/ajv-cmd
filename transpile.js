@@ -1,9 +1,6 @@
 // Copyright 2026 will Farrell, and ajv-cmd contributors.
 // SPDX-License-Identifier: MIT
-import { randomBytes } from "node:crypto";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import standaloneCode from "ajv/dist/standalone/index.js";
 import { build } from "esbuild";
@@ -11,33 +8,14 @@ import { compile, instance } from "./compile.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// The entry/bridge files are written to a unique temp dir (never into the
-// installed package dir), so esbuild needs explicit roots to resolve the bare
-// dependency imports (ajv, ajv-formats, @silverbucket/ajv-formats-draft2019).
-// Collect every node_modules dir from this package upward to cover both flat
-// and hoisted install layouts.
-const collectNodePaths = (dir) => {
-	const paths = [];
-	let current = dir;
-	while (true) {
-		paths.push(join(current, "node_modules"));
-		const parent = dirname(current);
-		if (parent === current) break;
-		current = parent;
-	}
-	return paths;
-};
-const nodePaths = collectNodePaths(__dirname);
-
 const defaultOptions = {
 	code: {
-		esm: true,
 		source: true, // required to create string of code
 	},
 };
 
 // Formats from @silverbucket/ajv-formats-draft2019 that AJV standalone
-// incorrectly references via ajv-formats/dist/formats
+// incorrectly references via ajv-formats/dist/formats.
 const draft2019Formats = new Set([
 	"iri",
 	"idn-email",
@@ -45,27 +23,35 @@ const draft2019Formats = new Set([
 	"iri-reference",
 ]);
 
-const bridgeModuleName = "formats-draft2019-bridge";
-
-const bridgeModuleContent = `
-const Ajv = require("ajv/dist/2020.js").default;
-const ajvFormatsDraft2019 = require("@silverbucket/ajv-formats-draft2019").default;
-const ajv = new Ajv();
-ajvFormatsDraft2019(ajv);
-exports.fullFormats = ajv.formats;
+// Injected (only when needed) ahead of the standalone code so the rewritten
+// format references below resolve to the draft2019 implementations.
+const draft2019FormatsHelper = `
+var __ajvCmdDraft2019Formats = (() => {
+	const Ajv = require("ajv/dist/2020.js").default;
+	const ajvFormatsDraft2019 = require("@silverbucket/ajv-formats-draft2019").default;
+	const ajv = new Ajv();
+	ajvFormatsDraft2019(ajv);
+	return ajv.formats;
+})();
 `;
 
 const fixDraft2019FormatRequires = (code) => {
-	return code.replaceAll(
+	let needsHelper = false;
+	code = code.replaceAll(
 		/require\("ajv-formats\/dist\/formats"\)\.fullFormats(?:\.(\w+)|\["([^"]+)"\])/g,
 		(match, dotName, bracketName) => {
 			const formatName = dotName ?? bracketName;
 			if (draft2019Formats.has(formatName)) {
-				return `require("./${bridgeModuleName}.cjs").fullFormats["${formatName}"]`;
+				needsHelper = true;
+				return `__ajvCmdDraft2019Formats["${formatName}"]`;
 			}
 			return match;
 		},
 	);
+	if (needsHelper) {
+		code = draft2019FormatsHelper + code;
+	}
+	return code;
 };
 
 export const transpile = async (schema, options = {}) => {
@@ -73,51 +59,25 @@ export const transpile = async (schema, options = {}) => {
 
 	const ajv = instance(options);
 	const validate = compile(schema, options);
-	let js = standaloneCode(ajv, validate);
-	const needsBridge =
-		draft2019Formats.intersection(
-			new Set(
-				js
-					.match(/fullFormats(?:\.(\w+)|\["([^"]+)"\])/g)
-					?.map((m) =>
-						m.replace(/fullFormats[.[]"?/, "").replace(/"?\]$/, ""),
-					) ?? [],
-			),
-		).size > 0;
+	const js = fixDraft2019FormatRequires(standaloneCode(ajv, validate));
 
-	js = fixDraft2019FormatRequires(js);
+	// Build fully in memory: the standalone code goes in via stdin and the
+	// bundle comes back via outputFiles — no temp files, so concurrent
+	// transpile() calls can never race and read-only installs are fine.
+	// resolveDir anchors esbuild's normal upward node_modules walk at this
+	// package's own directory, which resolves the bare imports (ajv,
+	// @silverbucket/ajv-formats-draft2019) in flat and hoisted layouts alike.
+	const result = await build({
+		stdin: { contents: js, resolveDir: __dirname, loader: "js" },
+		platform: "node",
+		format: "esm",
+		bundle: true,
+		minify: true,
+		legalComments: "none",
+		write: false,
+	});
 
-	// Per-call temp dir: avoids writing into the installed package directory
-	// (read-only/global installs, node_modules mutation) and avoids the
-	// fixed-name bridge file racing across concurrent transpile() calls.
-	const dir = await mkdtemp(join(tmpdir(), "ajv-cmd-"));
-	const file = join(dir, `${randomBytes(16).toString("hex")}.js`);
-	const bridgeFile = join(dir, `${bridgeModuleName}.cjs`);
-
-	try {
-		if (needsBridge) {
-			await writeFile(bridgeFile, bridgeModuleContent, "utf8");
-		}
-		await writeFile(file, js, "utf8");
-
-		await build({
-			entryPoints: [file],
-			platform: "node",
-			format: "esm",
-			bundle: true,
-			minify: true,
-			legalComments: "none",
-			allowOverwrite: true,
-			outfile: file,
-			nodePaths,
-		});
-
-		js = await readFile(file, { encoding: "utf8" });
-	} finally {
-		await rm(dir, { recursive: true, force: true });
-	}
-
-	return js;
+	return result.outputFiles[0].text;
 };
 
 export default transpile;

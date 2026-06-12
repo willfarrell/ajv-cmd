@@ -12,13 +12,12 @@ export default async (input, options = {}) => {
 
 	const jsonSchema = await readJson(input);
 
-	if (options.refSchemaFiles) {
-		options.schemas = await loadRefSchemas(options.refSchemaFiles);
-	}
+	// loadRefSchemas(undefined) returns undefined, so no guard is needed.
+	options.schemas = await loadRefSchemas(options.refSchemaFiles);
 
 	const js = await transpile(jsonSchema, options);
 	if (typeof options.output === "string") {
-		await writeFile(options.output, js, "utf8");
+		await writeFile(options.output, js);
 	} else if (options.output === true) {
 		return js;
 	} else {

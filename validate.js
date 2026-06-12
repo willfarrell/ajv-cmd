@@ -2,10 +2,6 @@
 // SPDX-License-Identifier: MIT
 import { compile } from "./compile.js";
 
-const defaultOptions = {
-	allErrors: true, // required for `errorMessage`
-};
-
 // structuredClone shields the caller's data from in-place mutation by
 // coerceTypes/useDefaults, but throws DataCloneError for values it cannot clone
 // (functions, class instances with internal slots, …). Fall back to validating
@@ -18,30 +14,31 @@ const safeClone = (data) => {
 	}
 };
 
+// Returns `{ valid, errors }` and never writes to the console — printing is the
+// CLI layer's job (commands/validate.js), not the library's.
+// The `allErrors: true` default (required for `errorMessage`) is applied by
+// compile.js, so options pass through untouched here.
 export const validate = async (schema, options = {}) => {
-	options = { ...defaultOptions, ...options };
-
 	let compiled;
 	try {
 		compiled = compile(schema, options);
 	} catch (e) {
-		console.error(e.message);
-		// `undefined` (schema failed to compile) is intentionally distinct from
-		// `false` (data invalid) so callers can tell a broken schema apart from a
-		// failed validation.
-		return undefined;
+		// `valid: undefined` (schema failed to compile) is intentionally distinct
+		// from `valid: false` (data invalid) so callers can tell a broken schema
+		// apart from a failed validation.
+		return { valid: undefined, errors: [e] };
 	}
 
-	let testSuccess = true;
+	const errors = [];
+	// `?.` matters: an explicit null bypasses the parameter default above.
 	for (const data of options?.testData ?? []) {
 		const valid = compiled(safeClone(data));
 		if (!valid) {
-			console.error(compiled.errors);
-			testSuccess = false;
+			errors.push(...compiled.errors);
 		}
 	}
 
-	return testSuccess;
+	return { valid: errors.length === 0, errors };
 };
 
 export default validate;

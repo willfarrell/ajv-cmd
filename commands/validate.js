@@ -11,37 +11,36 @@ export default async (input, options = {}) => {
 
 	const jsonSchema = await readJson(input);
 
-	if (options.refSchemaFiles) {
-		options.schemas = await loadRefSchemas(options.refSchemaFiles);
-	}
+	// loadRefSchemas(undefined) returns undefined, so no guard is needed.
+	options.schemas = await loadRefSchemas(options.refSchemaFiles);
 
-	if (options.testDataFiles) {
-		options.testData = await loadRefSchemas(options.testDataFiles);
-	}
+	options.testData = await loadRefSchemas(options.testDataFiles);
 
-	const valid = await validate(jsonSchema, options);
+	const { valid, errors } = await validate(jsonSchema, options);
 
 	// A schema that fails to compile is neither valid nor invalid data — it is a
 	// hard error. Surface it and exit non-zero regardless of --valid/--invalid so
 	// a broken schema can never pass silently in CI.
 	if (valid === undefined) {
+		console.error(errors[0].message);
 		console.error(input, "schema failed to compile");
 		return process.exit(1);
 	}
 
 	if (valid) {
 		if (options.invalid) {
-			console.log(input, "is valid, failed");
+			console.log(input, "is valid, expected invalid");
 			process.exit(1);
 		} else {
-			console.log(input, "is valid, success");
+			console.log(input, "is valid");
 		}
 	} else {
+		console.error(errors);
 		if (options.valid) {
-			console.log(input, "is invalid, failed");
+			console.log(input, "is invalid, expected valid");
 			process.exit(1);
 		} else {
-			console.log(input, "is invalid, success");
+			console.log(input, "is invalid");
 		}
 	}
 };

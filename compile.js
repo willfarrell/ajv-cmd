@@ -22,7 +22,11 @@ export const instance = (options = {}) => {
 	ajvFormats(ajv);
 	ajvFormatsDraft2019(ajv);
 	ajvKeywords(ajv);
-	ajvErrors(ajv);
+	// ajv-errors (the `errorMessage` keyword) requires allErrors and throws at
+	// registration without it — skip the plugin when the caller opts out.
+	if (options.allErrors) {
+		ajvErrors(ajv);
+	}
 	return ajv;
 };
 

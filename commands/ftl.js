@@ -14,7 +14,7 @@ export default async (input, options = {}) => {
 
 	const js = transpile(ftl, options);
 	if (typeof options.output === "string") {
-		await writeFile(options.output, js, "utf8");
+		await writeFile(options.output, js);
 	} else if (options.output === true) {
 		return js;
 	} else {

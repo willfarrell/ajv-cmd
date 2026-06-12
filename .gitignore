@@ -109,3 +109,6 @@ dist
 
 # IDE
 .nova
+
+# Local mutation-testing harness (hardcodes a machine-local stryker plugin path)
+stryker.node-test.config.json

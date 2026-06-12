@@ -10,7 +10,8 @@ export const assertFile = async (filepath) => {
 };
 
 export const readJson = async (filepath) => {
-	const raw = await readFile(filepath, { encoding: "utf8" });
+	// No encoding on purpose: JSON.parse decodes the returned Buffer as UTF-8.
+	const raw = await readFile(filepath);
 	try {
 		return JSON.parse(raw);
 	} catch (e) {

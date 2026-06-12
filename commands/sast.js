@@ -12,27 +12,25 @@ export default async (input, options = {}) => {
 
 	const jsonSchema = await readJson(input);
 
-	if (options.refSchemaFiles) {
-		options.schemas = await loadRefSchemas(options.refSchemaFiles);
-		if (options.schemas) {
-			const safeHostnames = new Set();
-			for (const schema of options.schemas) {
-				if (typeof schema.$id === "string") {
-					try {
-						const url = new URL(schema.$id);
-						if (url.hostname) safeHostnames.add(url.hostname);
-					} catch {}
-				}
-			}
-			options.safeHostnames = safeHostnames;
+	// loadRefSchemas(undefined) returns undefined, so no guard is needed.
+	options.schemas = await loadRefSchemas(options.refSchemaFiles);
+	if (options.schemas) {
+		const safeHostnames = new Set();
+		for (const schema of options.schemas) {
+			try {
+				// new URL() throws for a missing, relative, or non-string $id — those
+				// schemas simply contribute no safe hostname.
+				safeHostnames.add(new URL(schema.$id).hostname);
+			} catch {}
 		}
+		options.safeHostnames = safeHostnames;
 	}
 
 	const errors = await analyze(jsonSchema, options);
 
 	if (errors.length) {
 		if (typeof options.output === "string") {
-			await writeFile(options.output, JSON.stringify(errors, null, 2), "utf8");
+			await writeFile(options.output, JSON.stringify(errors, null, 2));
 		} else if (options.output === true) {
 			return errors;
 		} else {

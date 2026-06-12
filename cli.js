@@ -74,6 +74,14 @@ program
 	)
 	.addOption(
 		new Option(
+			"--all-errors [allErrors]",
+			"report all errors instead of stopping at the first (true/false, default true)",
+		)
+			.preset(true)
+			.argParser(parseBoolish),
+	)
+	.addOption(
+		new Option(
 			"--no-messages",
 			"exclude human-readable text messages from errors",
 		),
@@ -119,6 +127,14 @@ program
 		new Option(
 			"--coerce-types [coerceTypes]",
 			"change type of data to match type keyword",
+		)
+			.preset(true)
+			.argParser(parseBoolish),
+	)
+	.addOption(
+		new Option(
+			"--all-errors [allErrors]",
+			"report all errors instead of stopping at the first (true/false, default true)",
 		)
 			.preset(true)
 			.argParser(parseBoolish),
@@ -251,7 +267,16 @@ program
 
 // Surface command errors (missing files, invalid JSON, unresolved $refs, …) as
 // a clean message + non-zero exit instead of an unhandled-rejection stack trace.
-program.parseAsync().catch((error) => {
+const reportError = (error) => {
 	console.error(error.message);
 	process.exit(1);
-});
+};
+
+export { program, reportError };
+
+// Only auto-run when invoked as the CLI entry point — `import.meta.main` is true
+// solely for the entry module, so importing cli.js in tests does not parse argv.
+// The subprocess CLI tests execute this block end-to-end.
+if (import.meta.main) {
+	program.parseAsync().catch(reportError);
+}

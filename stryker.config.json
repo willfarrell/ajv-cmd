@@ -10,6 +10,7 @@
 		"*.js",
 		"commands/*.js",
 		"!*.test.js",
+		"!commands/*.test.js",
 		"!*.fuzz.js",
 		"!*.perf.js",
 		"!*.config.js"

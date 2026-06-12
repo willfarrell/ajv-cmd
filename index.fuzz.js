@@ -92,8 +92,7 @@ test("fuzz validate w/ random data against schema", async () => {
 	);
 });
 
-test("fuzz validate.test w/ random test data", async (t) => {
-	t.mock.method(console, "error", () => {});
+test("fuzz validate.test w/ random test data", async () => {
 	const schema = {
 		type: "object",
 		properties: {
@@ -113,8 +112,13 @@ test("fuzz validate.test w/ random test data", async (t) => {
 					catchError(testData, e);
 					return;
 				}
-				if (typeof result !== "boolean") {
-					throw new Error(`Expected boolean, got ${typeof result}`);
+				if (typeof result?.valid !== "boolean") {
+					throw new Error(
+						`Expected boolean valid, got ${typeof result?.valid}`,
+					);
+				}
+				if (!Array.isArray(result.errors)) {
+					throw new Error(`Expected errors array, got ${typeof result.errors}`);
 				}
 			},
 		),

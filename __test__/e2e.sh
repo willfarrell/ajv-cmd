@@ -8,7 +8,7 @@ bundle() {
 
   echo "validate ${schema}"
   node cli.js validate "${schema}" --valid \
-    --strict true --coerce-types array --use-defaults empty
+    --strict true --coerce-types array --all-errors true --use-defaults empty
 
   echo "sast ${schema}"
   # Redact the issues array to keep the console clean; keep the summary line.
@@ -16,7 +16,7 @@ bundle() {
 
   echo "transpile ${schema}"
   node cli.js transpile "${schema}" \
-    --strict true --coerce-types array --use-defaults empty \
+    --strict true --coerce-types array --all-errors true --use-defaults empty \
     -o "${out}"
 
   echo "test ${schema}"

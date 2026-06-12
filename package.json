@@ -4,32 +4,62 @@
 	"description": "Deref, Validate, Transpile, and Test JSON-Schema (.json) files using ajv",
 	"type": "module",
 	"engines": {
-		"node": ">=24"
+		"node": ">=24.2.0"
 	},
 	"bin": {
-		"ajv": "cli.js"
+		"ajv": "cli.js",
+		"ajv-cmd": "cli.js"
 	},
 	"files": [
 		"cli.js",
 		"commands/*.js",
 		"!commands/*.test.js",
 		"index.js",
+		"index.d.ts",
 		"compile.js",
+		"compile.d.ts",
 		"deref.js",
+		"deref.d.ts",
 		"ftl.js",
+		"ftl.d.ts",
 		"transpile.js",
+		"transpile.d.ts",
 		"validate.js",
-		"sast.js"
+		"validate.d.ts",
+		"sast.js",
+		"sast.d.ts"
 	],
 	"main": "index.js",
+	"types": "./index.d.ts",
 	"exports": {
-		".": "./index.js",
-		"./compile": "./compile.js",
-		"./deref": "./deref.js",
-		"./ftl": "./ftl.js",
-		"./sast": "./sast.js",
-		"./transpile": "./transpile.js",
-		"./validate": "./validate.js"
+		".": {
+			"types": "./index.d.ts",
+			"default": "./index.js"
+		},
+		"./compile": {
+			"types": "./compile.d.ts",
+			"default": "./compile.js"
+		},
+		"./deref": {
+			"types": "./deref.d.ts",
+			"default": "./deref.js"
+		},
+		"./ftl": {
+			"types": "./ftl.d.ts",
+			"default": "./ftl.js"
+		},
+		"./sast": {
+			"types": "./sast.d.ts",
+			"default": "./sast.js"
+		},
+		"./transpile": {
+			"types": "./transpile.d.ts",
+			"default": "./transpile.js"
+		},
+		"./validate": {
+			"types": "./validate.d.ts",
+			"default": "./validate.js"
+		}
 	},
 	"scripts": {
 		"prepare": "husky || true",
@@ -47,7 +77,7 @@
 		"test:sast:semgrep": "semgrep scan --config auto --error",
 		"test:sast:trivy": "trivy fs --scanners vuln,license --include-dev-deps --ignored-licenses 0BSD,Apache-2.0,BSD-1-Clause,BSD-2-Clause,BSD-3-Clause,CC0-1.0,CC-BY-4.0,ISC,MIT,Python-2.0,LGPL-3.0-or-later,MPL-2.0,BlueOak-1.0.0,Unlicense --exit-code 1 --skip-files '**/bun.lock' --disable-telemetry .",
 		"test:sast:trufflehog": "trufflehog filesystem --only-verified --log-level=-1 ./",
-		"test:sast:zizmor": "zizmor .github/workflows/",
+		"test:sast:zizmor": "zizmor .github",
 		"test:types": "tstyche",
 		"test:perf": "node --test --test-concurrency=1 ./*.perf.js",
 		"test:dast": "npm run test:dast:fuzz",
@@ -87,17 +117,17 @@
 	},
 	"homepage": "https://github.com/willfarrell/ajv-cmd",
 	"dependencies": {
-		"@apidevtools/json-schema-ref-parser": "15.3.5",
+		"@apidevtools/json-schema-ref-parser": "15.3.6",
 		"@silverbucket/ajv-formats-draft2019": "1.6.5",
 		"ajv": "8.20.0",
 		"ajv-errors": "3.0.0",
 		"ajv-formats": "3.0.1",
-		"ajv-ftl-i18n": "0.2.1",
+		"ajv-ftl-i18n": "0.3.0",
 		"ajv-i18n": "4.2.0",
 		"ajv-keywords": "5.1.0",
 		"commander": "15.0.0",
-		"esbuild": "0.28.0",
-		"sast-json-schema": "0.4.1"
+		"esbuild": "0.28.1",
+		"sast-json-schema": "0.5.0"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.0.0",
