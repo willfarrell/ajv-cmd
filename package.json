@@ -140,7 +140,10 @@
 		"tinybench": "^6.0.0",
 		"tstyche": "^7.0.0"
 	},
-	"overrides": {},
+	"overrides": {
+		"js-yaml": ">=4.2.0",
+		"qs": ">=6.15.2"
+	},
 	"devEngines": {
 		"runtime": {
 			"name": "node",
