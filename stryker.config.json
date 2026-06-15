@@ -1,0 +1,25 @@
+{
+	"$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+	"packageManager": "npm",
+	"testRunner": "command",
+	"commandRunner": {
+		"command": "node --test --test-force-exit ./*.test.js ./commands/*.test.js"
+	},
+	"coverageAnalysis": "off",
+	"mutate": [
+		"*.js",
+		"commands/*.js",
+		"!*.test.js",
+		"!commands/*.test.js",
+		"!*.fuzz.js",
+		"!*.perf.js",
+		"!*.config.js"
+	],
+	"reporters": ["progress", "clear-text"],
+	"thresholds": {
+		"high": 100,
+		"low": 100,
+		"break": 100
+	},
+	"tempDirName": "/tmp/stryker/ajv-cmd"
+}

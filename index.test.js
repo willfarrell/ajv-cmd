@@ -41,3 +41,12 @@ test("index default export should contain all functions", () => {
 	strictEqual(defaults.validate, validate);
 	strictEqual(defaults.ftl, ftl);
 });
+
+test("index does not export sast (ESM-only subpath, top-level await)", async () => {
+	// sast-json-schema uses top-level await, so sast is intentionally NOT on the
+	// main barrel (which would make it async and break the CJS require build).
+	// Consumers must use the `ajv-cmd/sast` subpath. Keep README in sync.
+	const mod = await import("./index.js");
+	strictEqual("sast" in mod, false);
+	strictEqual("sast" in defaults, false);
+});

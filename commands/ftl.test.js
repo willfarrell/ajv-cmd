@@ -10,24 +10,33 @@ const fixture = (name) => resolve(__dirname, "..", "__test__", name);
 
 test("cmd ftl should transpile ftl to stdout", async (t) => {
 	const mockLog = t.mock.method(console, "log", () => {});
-	const result = await ftlCmd(fixture("hello.ftl"), { locale: ["en"] });
+	await ftlCmd(fixture("hello.ftl"), { locale: ["en"] });
 	strictEqual(mockLog.mock.calls.length, 1);
-	ok(typeof result === "string");
+	ok(typeof mockLog.mock.calls[0].arguments[0] === "string");
 });
 
 test("cmd ftl should write output to file", async () => {
 	const outputPath = fixture("_ftl_output.js");
 	try {
-		const result = await ftlCmd(fixture("hello.ftl"), {
+		await ftlCmd(fixture("hello.ftl"), {
 			locale: ["en"],
 			output: outputPath,
 		});
 		const content = await readFile(outputPath, "utf8");
 		ok(content.length > 0);
-		ok(typeof result === "string");
 	} finally {
 		await unlink(outputPath).catch(() => {});
 	}
+});
+
+test("cmd ftl should return js when output is true", async (t) => {
+	const _mockLog = t.mock.method(console, "log", () => {});
+	const result = await ftlCmd(fixture("hello.ftl"), {
+		locale: ["en"],
+		output: true,
+	});
+	ok(typeof result === "string");
+	ok(result.length > 0);
 });
 
 test("cmd ftl should throw for non-existent file", async () => {

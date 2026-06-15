@@ -1,0 +1,9 @@
+{
+	"type": "object",
+	"unknownKeyword": true,
+	"properties": {
+		"a": {
+			"type": "string"
+		}
+	}
+}

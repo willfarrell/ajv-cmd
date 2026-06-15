@@ -4,7 +4,7 @@
 	"description": "Workspace for CI-only dev tools (e.g. lockfile-lint) that should not be installed by users or bloat the top-level dependency graph.",
 	"private": true,
 	"engines": {
-		"node": ">=24.0"
+		"node": ">=24"
 	},
 	"devDependencies": {
 		"lockfile-lint": "5.0.0"

@@ -1,113 +1,91 @@
 {
 	"name": "ajv-cmd",
-	"version": "0.13.3",
+	"version": "0.15.0",
 	"description": "Deref, Validate, Transpile, and Test JSON-Schema (.json) files using ajv",
 	"type": "module",
 	"engines": {
-		"node": ">=24"
+		"node": ">=24.2.0"
 	},
-	"engineStrict": true,
 	"bin": {
-		"ajv": "cli.js"
+		"ajv": "cli.js",
+		"ajv-cmd": "cli.js"
 	},
 	"files": [
 		"cli.js",
 		"commands/*.js",
 		"!commands/*.test.js",
-		"index.cjs",
 		"index.js",
-		"compile.cjs",
+		"index.d.ts",
 		"compile.js",
-		"deref.cjs",
+		"compile.d.ts",
 		"deref.js",
-		"ftl.cjs",
+		"deref.d.ts",
 		"ftl.js",
-		"transpile.cjs",
+		"ftl.d.ts",
 		"transpile.js",
-		"validate.cjs",
+		"transpile.d.ts",
 		"validate.js",
-		"sast.js"
+		"validate.d.ts",
+		"sast.js",
+		"sast.d.ts"
 	],
 	"main": "index.js",
+	"types": "./index.d.ts",
 	"exports": {
 		".": {
-			"import": {
-				"default": "./index.js"
-			},
-			"require": {
-				"default": "./index.cjs"
-			}
+			"types": "./index.d.ts",
+			"default": "./index.js"
 		},
 		"./compile": {
-			"import": {
-				"default": "./compile.js"
-			},
-			"require": {
-				"default": "./compile.cjs"
-			}
+			"types": "./compile.d.ts",
+			"default": "./compile.js"
 		},
 		"./deref": {
-			"import": {
-				"default": "./deref.js"
-			},
-			"require": {
-				"default": "./deref.cjs"
-			}
+			"types": "./deref.d.ts",
+			"default": "./deref.js"
 		},
 		"./ftl": {
-			"import": {
-				"default": "./ftl.js"
-			},
-			"require": {
-				"default": "./ftl.cjs"
-			}
+			"types": "./ftl.d.ts",
+			"default": "./ftl.js"
 		},
 		"./sast": {
-			"import": {
-				"default": "./sast.js"
-			}
+			"types": "./sast.d.ts",
+			"default": "./sast.js"
 		},
 		"./transpile": {
-			"import": {
-				"default": "./transpile.js"
-			},
-			"require": {
-				"default": "./transpile.cjs"
-			}
+			"types": "./transpile.d.ts",
+			"default": "./transpile.js"
 		},
 		"./validate": {
-			"import": {
-				"default": "./validate.js"
-			},
-			"require": {
-				"default": "./validate.cjs"
-			}
+			"types": "./validate.d.ts",
+			"default": "./validate.js"
 		}
 	},
 	"scripts": {
 		"prepare": "husky || true",
-		"prepublishOnly": "npm run build",
-		"build": "npm run build:index && npm run build:compile && npm run build:deref && npm run build:ftl && npm run build:transpile && npm run build:validate",
-		"build:index": "./node_modules/.bin/esbuild index.js --platform=node --format=cjs  --target=node18 --allow-overwrite --outfile=index.cjs",
-		"build:compile": "./node_modules/.bin/esbuild compile.js --platform=node --format=cjs  --target=node18 --allow-overwrite --outfile=compile.cjs",
-		"build:deref": "./node_modules/.bin/esbuild deref.js --platform=node --format=cjs  --target=node18 --allow-overwrite --outfile=deref.cjs",
-		"build:ftl": "./node_modules/.bin/esbuild ftl.js --platform=node --format=cjs  --target=node18 --bundle --allow-overwrite --outfile=ftl.cjs",
-		"build:transpile": "./node_modules/.bin/esbuild transpile.js --platform=node --format=cjs  --target=node18 --allow-overwrite --outfile=transpile.cjs",
-		"build:validate": "./node_modules/.bin/esbuild validate.js --platform=node --format=cjs  --target=node18  --allow-overwrite --outfile=validate.cjs",
-		"pretest": "npm run build",
-		"test": "npm run test:lint && npm run test:unit && npm run test:e2e && npm run test:types && npm run test:sast && npm run test:perf && npm run test:dast",
-		"test:unit": "node --test --experimental-test-coverage --test-coverage-lines=95 --test-coverage-branches=90 --test-coverage-functions=90 ./*.test.js ./commands/*.test.js",
+		"test": "npm run test:lint && npm run test:unit && npm run test:mutation && npm run test:e2e && npm run test:types && npm run test:sast && npm run test:perf && npm run test:dast",
+		"test:unit": "node --test --experimental-test-coverage --test-coverage-lines=100 --test-coverage-branches=100 --test-coverage-functions=100 ./*.test.js ./commands/*.test.js",
+		"test:mutation": "stryker run",
 		"test:e2e": "./__test__/e2e.sh",
-		"test:sast": "npm run test:sast:license && npm run test:sast:lockfile && npm run test:sast:semgrep && npm run test:sast:trufflehog && npm run test:sast:trivy",
+		"test:sast": "npm run test:sast:license && npm run test:sast:lockfile && npm run test:sast:semgrep && npm run test:sast:trufflehog && npm run test:sast:gitleaks && npm run test:sast:actionlint && npm run test:sast:zizmor && npm run test:sast:trivy",
+		"test:sast:actionlint": "actionlint",
+		"test:sast:gitleaks": "npm run test:sast:gitleaks:dir && npm run test:sast:gitleaks:git",
+		"test:sast:gitleaks:dir": "gitleaks dir . --redact --no-banner",
+		"test:sast:gitleaks:git": "gitleaks git . --redact --no-banner",
 		"test:sast:license": "license-check-and-add check -f .license.config.json",
 		"test:sast:lockfile": "lockfile-lint --path package-lock.json --type npm --allowed-hosts npm --validate-https",
-		"test:sast:semgrep": "semgrep scan --config auto",
-		"test:sast:trivy": "trivy fs --scanners vuln,license --include-dev-deps --ignored-licenses 0BSD,Apache-2.0,BSD-1-Clause,BSD-2-Clause,BSD-3-Clause,CC0-1.0,CC-BY-4.0,ISC,MIT,Python-2.0 --exit-code 1 --disable-telemetry .",
+		"test:sast:semgrep": "semgrep scan --config auto --error",
+		"test:sast:trivy": "trivy fs --scanners vuln,license --include-dev-deps --ignored-licenses 0BSD,Apache-2.0,BSD-1-Clause,BSD-2-Clause,BSD-3-Clause,CC0-1.0,CC-BY-4.0,ISC,MIT,Python-2.0,LGPL-3.0-or-later,MPL-2.0,BlueOak-1.0.0,Unlicense --exit-code 1 --skip-files '**/bun.lock' --disable-telemetry .",
 		"test:sast:trufflehog": "trufflehog filesystem --only-verified --log-level=-1 ./",
+		"test:sast:zizmor": "zizmor .github",
 		"test:types": "tstyche",
 		"test:perf": "node --test --test-concurrency=1 ./*.perf.js",
 		"test:dast": "npm run test:dast:fuzz",
 		"test:dast:fuzz": "node --test ./*.fuzz.js",
+		"rm": "npm run rm:macos && npm run rm:node_modules && npm run rm:lock",
+		"rm:macos": "find . -name '.DS_Store' -type f -delete",
+		"rm:lock": "find . -name 'package-lock.json' -type f -delete",
+		"rm:node_modules": "find . -name 'node_modules' -type d -prune -exec rm -rf '{}' +",
 		"test:coverage": "node --test --experimental-test-coverage ./*.test.js ./commands/*.test.js",
 		"git:pre-commit": "npm run git:lint-staged && npm run git:test-staged",
 		"git:commit-msg": "commitlint --config commitlint.config.cjs --edit",
@@ -139,27 +117,32 @@
 	},
 	"homepage": "https://github.com/willfarrell/ajv-cmd",
 	"dependencies": {
-		"@apidevtools/json-schema-ref-parser": "15.3.5",
+		"@apidevtools/json-schema-ref-parser": "15.3.6",
 		"@silverbucket/ajv-formats-draft2019": "1.6.5",
 		"ajv": "8.20.0",
 		"ajv-errors": "3.0.0",
 		"ajv-formats": "3.0.1",
-		"ajv-ftl-i18n": "0.2.1",
+		"ajv-ftl-i18n": "0.3.0",
 		"ajv-i18n": "4.2.0",
 		"ajv-keywords": "5.1.0",
-		"commander": "14.0.3",
-		"esbuild": "^0.28.0",
-		"sast-json-schema": "^0.4.0"
+		"commander": "15.0.0",
+		"esbuild": "0.28.1",
+		"sast-json-schema": "0.5.0"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.0.0",
-		"@commitlint/cli": "^20.0.0",
-		"@commitlint/config-conventional": "^20.0.0",
+		"@commitlint/cli": "^21.0.0",
+		"@commitlint/config-conventional": "^21.0.0",
+		"@stryker-mutator/core": "^9.0.0",
 		"fast-check": "^4.0.0",
 		"husky": "^9.0.0",
 		"license-check-and-add": "4.0.5",
 		"tinybench": "^6.0.0",
 		"tstyche": "^7.0.0"
+	},
+	"overrides": {
+		"js-yaml": ">=4.2.0",
+		"qs": ">=6.15.2"
 	},
 	"devEngines": {
 		"runtime": {
