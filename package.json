@@ -140,9 +140,7 @@
 		"tinybench": "^6.0.0",
 		"tstyche": "^7.0.0"
 	},
-	"overrides": {
-		"qs": "^6.15.2"
-	},
+	"overrides": {},
 	"devEngines": {
 		"runtime": {
 			"name": "node",
