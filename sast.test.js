@@ -35,10 +35,10 @@ test("sast validate should detect issues in insecure schema", () => {
 		},
 	};
 	const valid = validate(insecureSchema);
-	ok(valid === true || valid === false);
-	if (!valid) {
-		ok(Array.isArray(validate.errors));
-	}
+	// The insecure schema (unbounded string + unbounded array) must be flagged.
+	strictEqual(valid, false);
+	ok(Array.isArray(validate.errors));
+	ok(validate.errors.length > 0);
 });
 
 test("sast default export should be sast function", async () => {

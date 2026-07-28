@@ -1,3 +1,4 @@
+import { ok } from "node:assert";
 import test from "node:test";
 import { Bench } from "tinybench";
 import { compile, instance } from "./compile.js";
@@ -7,6 +8,19 @@ import validate from "./validate.js";
 
 const time = Number(process.env.BENCH_TIME ?? 5_000);
 const fastTime = Number(process.env.BENCH_FAST_TIME ?? 100);
+
+// A benchmark that throws or yields zero throughput is a regression, not a
+// "pass". Fail the test instead of only printing a table.
+const assertHealthy = (bench) => {
+	ok(bench.tasks.length > 0, `${bench.name}: no tasks ran`);
+	for (const task of bench.tasks) {
+		ok(!task.result?.error, `${bench.name}: "${task.name}" threw`);
+		ok(
+			(task.result?.throughput?.mean ?? 0) > 0,
+			`${bench.name}: "${task.name}" produced no throughput`,
+		);
+	}
+};
 
 const simpleSchema = {
 	type: "object",
@@ -32,6 +46,7 @@ test("perf: instance creation", async () => {
 	});
 
 	await bench.run();
+	assertHealthy(bench);
 	console.log(`\n${bench.name}`);
 	console.table(bench.table());
 });
@@ -48,6 +63,7 @@ test("perf: compile", async () => {
 	});
 
 	await bench.run();
+	assertHealthy(bench);
 	console.log(`\n${bench.name}`);
 	console.table(bench.table());
 });
@@ -65,6 +81,7 @@ test("perf: validation", async () => {
 	});
 
 	await bench.run();
+	assertHealthy(bench);
 	console.log(`\n${bench.name}`);
 	console.table(bench.table());
 });
@@ -81,6 +98,7 @@ test("perf: validate.test()", async () => {
 	});
 
 	await bench.run();
+	assertHealthy(bench);
 	console.log(`\n${bench.name}`);
 	console.table(bench.table());
 });
@@ -94,6 +112,7 @@ test("perf: sast", async () => {
 	});
 
 	await bench.run();
+	assertHealthy(bench);
 	console.log(`\n${bench.name}`);
 	console.table(bench.table());
 });
@@ -106,6 +125,7 @@ test("perf: transpile", async () => {
 	});
 
 	await bench.run();
+	assertHealthy(bench);
 	console.log(`\n${bench.name}`);
 	console.table(bench.table());
 });

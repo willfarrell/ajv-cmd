@@ -1,0 +1,16 @@
+diff --git a/node_modules/ajv/dist/compile/validate/dataType.js b/node_modules/ajv/dist/compile/validate/dataType.js
+index 6d03e0d..447d03d 100644
+--- a/node_modules/ajv/dist/compile/validate/dataType.js
++++ b/node_modules/ajv/dist/compile/validate/dataType.js
+@@ -44,7 +44,10 @@ function coerceAndCheckDataType(it, types) {
+     if (checkTypes) {
+         const wrongType = checkDataTypes(types, data, opts.strictNumbers, DataType.Wrong);
+         gen.if(wrongType, () => {
+-            if (coerceTo.length)
++            // never coerce a property name: keys are always strings, the forIn
++            // binding is a const, and parentData still points at the object's
++            // own slot so the emitted assignment would clobber the parent
++            if (coerceTo.length && it.propertyName === undefined)
+                 coerceData(it, types, coerceTo);
+             else
+                 reportTypeError(it);

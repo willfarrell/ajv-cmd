@@ -1,25 +1,21 @@
 // Copyright 2026 will Farrell, and ajv-cmd contributors.
 // SPDX-License-Identifier: MIT
-import { randomBytes } from "node:crypto";
-import { readFile, rm, writeFile } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import standaloneCode from "ajv/dist/standalone/index.js";
 import { build } from "esbuild";
-import { compile, instance } from "./compile.js";
+import { instance } from "./compile.js";
 
-// required to ensure node_modules can be found
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const defaultOptions = {
 	code: {
-		esm: true,
 		source: true, // required to create string of code
 	},
 };
 
 // Formats from @silverbucket/ajv-formats-draft2019 that AJV standalone
-// incorrectly references via ajv-formats/dist/formats
+// incorrectly references via ajv-formats/dist/formats.
 const draft2019Formats = new Set([
 	"iri",
 	"idn-email",
@@ -27,77 +23,65 @@ const draft2019Formats = new Set([
 	"iri-reference",
 ]);
 
-const bridgeModuleName = "formats-draft2019-bridge";
-
-const bridgeModuleContent = `
-const Ajv = require("ajv/dist/2020.js").default;
-const ajvFormatsDraft2019 = require("@silverbucket/ajv-formats-draft2019").default;
-const ajv = new Ajv();
-ajvFormatsDraft2019(ajv);
-exports.fullFormats = ajv.formats;
+// Injected (only when needed) ahead of the standalone code so the rewritten
+// format references below resolve to the draft2019 implementations.
+const draft2019FormatsHelper = `
+var __ajvCmdDraft2019Formats = (() => {
+	const Ajv = require("ajv/dist/2020.js").default;
+	const ajvFormatsDraft2019 = require("@silverbucket/ajv-formats-draft2019").default;
+	const ajv = new Ajv();
+	ajvFormatsDraft2019(ajv);
+	return ajv.formats;
+})();
 `;
 
 const fixDraft2019FormatRequires = (code) => {
-	return code.replaceAll(
+	let needsHelper = false;
+	code = code.replaceAll(
 		/require\("ajv-formats\/dist\/formats"\)\.fullFormats(?:\.(\w+)|\["([^"]+)"\])/g,
 		(match, dotName, bracketName) => {
 			const formatName = dotName ?? bracketName;
 			if (draft2019Formats.has(formatName)) {
-				return `require("./${bridgeModuleName}.cjs").fullFormats["${formatName}"]`;
+				needsHelper = true;
+				return `__ajvCmdDraft2019Formats["${formatName}"]`;
 			}
 			return match;
 		},
 	);
+	if (needsHelper) {
+		code = draft2019FormatsHelper + code;
+	}
+	return code;
 };
 
 export const transpile = async (schema, options = {}) => {
 	options = { ...defaultOptions, ...options };
 
+	// Compile on this very instance rather than via compile() — standaloneCode
+	// serialises `validate`'s scope values through `ajv.scope`, so the two must
+	// be the same instance. It also halves the work: instance() is ~6ms and
+	// dominates per-schema cost, and compile() would build a second one.
 	const ajv = instance(options);
-	const validate = compile(schema, options);
-	let js = standaloneCode(ajv, validate);
-	const needsBridge =
-		draft2019Formats.intersection(
-			new Set(
-				js
-					.match(/fullFormats(?:\.(\w+)|\["([^"]+)"\])/g)
-					?.map((m) =>
-						m.replace(/fullFormats[.[]"?/, "").replace(/"?\]$/, ""),
-					) ?? [],
-			),
-		).size > 0;
+	const validate = ajv.compile(schema);
+	const js = fixDraft2019FormatRequires(standaloneCode(ajv, validate));
 
-	js = fixDraft2019FormatRequires(js);
+	// Build fully in memory: the standalone code goes in via stdin and the
+	// bundle comes back via outputFiles — no temp files, so concurrent
+	// transpile() calls can never race and read-only installs are fine.
+	// resolveDir anchors esbuild's normal upward node_modules walk at this
+	// package's own directory, which resolves the bare imports (ajv,
+	// @silverbucket/ajv-formats-draft2019) in flat and hoisted layouts alike.
+	const result = await build({
+		// No `loader` — esbuild already defaults stdin to js.
+		stdin: { contents: js, resolveDir: __dirname },
+		platform: "node",
+		format: "esm",
+		bundle: true,
+		minify: true,
+		write: false,
+	});
 
-	const file = join(__dirname, `${randomBytes(16).toString("hex")}.js`);
-	const bridgeFile = join(__dirname, `${bridgeModuleName}.cjs`);
-
-	const cleanupFiles = [file];
-	if (needsBridge) cleanupFiles.push(bridgeFile);
-
-	try {
-		if (needsBridge) {
-			await writeFile(bridgeFile, bridgeModuleContent, "utf8");
-		}
-		await writeFile(file, js, "utf8");
-
-		await build({
-			entryPoints: [file],
-			platform: "node",
-			format: "esm",
-			bundle: true,
-			minify: true,
-			legalComments: "none",
-			allowOverwrite: true,
-			outfile: file,
-		});
-
-		js = await readFile(file, { encoding: "utf8" });
-	} finally {
-		await Promise.all(cleanupFiles.map((f) => rm(f, { force: true })));
-	}
-
-	return js;
+	return result.outputFiles[0].text;
 };
 
 export default transpile;

@@ -13,18 +13,25 @@ const defaultOptions = {
 
 /** @returns {Ajv2020} */
 export const instance = (options = {}) => {
-	options = { ...defaultOptions, ...options, keywords: [] };
+	// Default `keywords` to [] — custom keywords are normally registered by the
+	// ajv-keywords plugin below, not via the constructor option — but respect any
+	// caller-supplied `keywords` rather than silently discarding them.
+	options = { ...defaultOptions, ...options, keywords: options.keywords ?? [] };
 
 	const ajv = new Ajv(options);
 	ajvFormats(ajv);
 	ajvFormatsDraft2019(ajv);
 	ajvKeywords(ajv);
-	ajvErrors(ajv);
+	// ajv-errors (the `errorMessage` keyword) requires allErrors and throws at
+	// registration without it — skip the plugin when the caller opts out.
+	if (options.allErrors) {
+		ajvErrors(ajv);
+	}
 	return ajv;
 };
 
 export const compile = (schema, options = {}) => {
-	options = { ...defaultOptions, ...options, keywords: [] };
+	options = { ...defaultOptions, ...options };
 	const ajv = instance(options);
 	return ajv.compile(schema);
 };
