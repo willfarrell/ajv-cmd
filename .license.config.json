@@ -12,6 +12,7 @@
 		".github/**/*",
 		".husky/**/*",
 		"fixtures/*",
+		"patches/*",
 		"commitlint.config.cjs",
 		"stryker.config.*",
 		"LICENSE",
