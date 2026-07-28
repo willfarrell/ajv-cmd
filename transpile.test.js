@@ -39,6 +39,22 @@ test("transpile default export should be transpile function", async () => {
 	strictEqual(mod.default, mod.transpile);
 });
 
+test("transpile supports propertyNames alongside coerceTypes", async () => {
+	// ajv <=8.20.0 emitted `key = coerced` against its own `for (const key in …)`
+	// binding for propertyNames when coerceTypes is on — invalid JS that esbuild
+	// rejects. Patched in patches/ajv+*.patch: a property-name type mismatch
+	// reports a type error instead of emitting coercion (keys are always strings).
+	const js = await transpile(
+		{
+			type: "object",
+			propertyNames: { type: "string", maxLength: 64 },
+			additionalProperties: { type: "string" },
+		},
+		{ coerceTypes: true },
+	);
+	ok(js.includes("export"));
+});
+
 test("transpile handles concurrent draft2019 calls without racing on the bridge", async () => {
 	// Previously all concurrent calls shared a fixed-name bridge file in the
 	// package dir; one call's cleanup deleted it mid-build of another, failing

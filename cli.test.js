@@ -1,6 +1,8 @@
 import { doesNotMatch, match, ok, strictEqual, throws } from "node:assert";
 import { execFile } from "node:child_process";
-import { resolve } from "node:path";
+import { copyFile, mkdtemp, readdir, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 import test from "node:test";
 import { promisify } from "node:util";
 import { program, reportError } from "./cli.js";
@@ -9,8 +11,12 @@ const execFileAsync = promisify(execFile);
 const cli = resolve(import.meta.dirname, "cli.js");
 const fixture = (name) => resolve(import.meta.dirname, "__test__", name);
 
+// Mirrors the shebang's own flag so stderr carries only what the CLI wrote,
+// which lets a test assert stderr is exactly empty.
 const run = (...args) =>
-	execFileAsync("node", [cli, ...args], { cwd: import.meta.dirname });
+	execFileAsync("node", ["--disable-warning=DEP0040", cli, ...args], {
+		cwd: import.meta.dirname,
+	});
 
 test("cli validate (default) with --valid and valid schema", async () => {
 	const { stdout } = await run(fixture("simple.schema.json"), "--valid");
@@ -240,7 +246,10 @@ const EXPECTED = {
 	commands: {
 		validate: {
 			isDefault: true,
-			arg: { name: "input", desc: "Path to the JSON-Schema file to validate" },
+			arg: {
+				name: "input",
+				desc: "Paths or glob patterns of JSON-Schema files to validate",
+			},
 			options: [
 				{
 					flags: "--valid",
@@ -286,7 +295,7 @@ const EXPECTED = {
 		transpile: {
 			arg: {
 				name: "input",
-				desc: "Path to the JSON-Schema file to transpile",
+				desc: "Paths or glob patterns of JSON-Schema files to transpile",
 			},
 			options: [
 				{ flags: "-r, --ref-schema-files <refSchemaFiles...>", desc: REF_DESC },
@@ -320,7 +329,7 @@ const EXPECTED = {
 		deref: {
 			arg: {
 				name: "input",
-				desc: "Path to the JSON-Schema file to deref relative $ref",
+				desc: "Paths or glob patterns of JSON-Schema files to deref relative $ref",
 			},
 			options: [
 				{ flags: "-r, --ref-schema-files <refSchemaFiles...>", desc: REF_DESC },
@@ -338,7 +347,7 @@ const EXPECTED = {
 		sast: {
 			arg: {
 				name: "input",
-				desc: "Path to the JSON-Schema file to audit for security",
+				desc: "Paths or glob patterns of JSON-Schema files to audit for security",
 			},
 			options: [
 				{ flags: "-r, --ref-schema-files <refSchemaFiles...>", desc: REF_DESC },
@@ -388,7 +397,10 @@ const EXPECTED = {
 			],
 		},
 		ftl: {
-			arg: { name: "input", desc: "Path to the Fluent file to transpile" },
+			arg: {
+				name: "input",
+				desc: "Paths or glob patterns of Fluent files to transpile",
+			},
 			options: [
 				{
 					flags: "--locale <locale...>",
@@ -478,4 +490,161 @@ test("cli reportError prints the message and exits 1", (t) => {
 	strictEqual(mockError.mock.calls[0].arguments[0], "boom");
 	strictEqual(mockExit.mock.calls.length, 1);
 	strictEqual(mockExit.mock.calls[0].arguments[0], 1);
+});
+
+test("cli accepts multiple inputs and reports each", async () => {
+	const { stdout } = await run(
+		fixture("simple.schema.json"),
+		fixture("secure.schema.json"),
+	);
+	match(stdout, /simple\.schema\.json is valid/);
+	match(stdout, /secure\.schema\.json is valid/);
+});
+
+test("cli input argument is variadic for every command", () => {
+	for (const cmd of program.commands) {
+		ok(
+			cmd.registeredArguments[0].variadic,
+			`${cmd.name()} should take multiple inputs`,
+		);
+	}
+});
+
+test("cli expands a glob pattern the shell never saw", async () => {
+	// Quoted so the shell cannot expand it — execFile does no expansion either,
+	// so the pattern reaches fs.glob verbatim.
+	const { stdout } = await run("validate", "__test__/s*.schema.json");
+	match(stdout, /secure\.schema\.json is valid/);
+	match(stdout, /simple\.schema\.json is valid/);
+});
+
+test("cli errors when a pattern matches nothing", async () => {
+	try {
+		await run("validate", "__test__/no-such-*.json");
+		throw new Error("Expected process to exit with non-zero code");
+	} catch (e) {
+		strictEqual(e.code, 1);
+		match(e.stderr, /No files matched/);
+	}
+});
+
+test("cli runs every input before exiting 1 on failure", async () => {
+	// uncompilable comes first: fail-fast would never reach the two good files.
+	try {
+		await run(
+			fixture("uncompilable.schema.json"),
+			fixture("simple.schema.json"),
+			fixture("secure.schema.json"),
+		);
+		throw new Error("Expected process to exit with non-zero code");
+	} catch (e) {
+		strictEqual(e.code, 1);
+		match(e.stderr, /schema failed to compile/);
+		match(e.stdout, /simple\.schema\.json is valid/);
+		match(e.stdout, /secure\.schema\.json is valid/);
+	}
+});
+
+test("cli rejects --output with more than one input", async () => {
+	try {
+		await run(
+			"transpile",
+			fixture("simple.schema.json"),
+			fixture("secure.schema.json"),
+			"-o",
+			"/dev/null",
+		);
+		throw new Error("Expected process to exit with non-zero code");
+	} catch (e) {
+		strictEqual(e.code, 1);
+		match(e.stderr, /--output takes a single input, received 2/);
+	}
+});
+
+test("cli batch writes each output beside its input", async () => {
+	const dir = await mkdtemp(join(tmpdir(), "ajv-batch-"));
+	try {
+		const a = join(dir, "simple.schema.json");
+		const b = join(dir, "secure.schema.json");
+		await copyFile(fixture("simple.schema.json"), a);
+		await copyFile(fixture("secure.schema.json"), b);
+
+		await run("transpile", a, b);
+		const js = await readdir(dir);
+		ok(js.includes("simple.schema.js"), "expected simple.schema.js");
+		ok(js.includes("secure.schema.js"), "expected secure.schema.js");
+
+		// deref also emits JSON, so it must not mirror back onto the input.
+		await run("deref", a, b);
+		const after = await readdir(dir);
+		ok(after.includes("simple.schema.deref.json"), "expected .deref.json");
+		strictEqual(
+			JSON.parse(await readFile(a, "utf8")).$id,
+			JSON.parse(await readFile(fixture("simple.schema.json"), "utf8")).$id,
+			"input schema must be left untouched",
+		);
+	} finally {
+		await rm(dir, { recursive: true, force: true });
+	}
+});
+
+test("cli reports a non-CommandFailure error and still runs the rest", async () => {
+	// hello.ftl is a real file but not JSON, so readJson throws inside the loop —
+	// a different path from a CommandFailure, and its message must still surface.
+	try {
+		await run(fixture("hello.ftl"), fixture("simple.schema.json"));
+		throw new Error("Expected process to exit with non-zero code");
+	} catch (e) {
+		strictEqual(e.code, 1);
+		match(e.stderr, /Failed to parse JSON in .*hello\.ftl/);
+		match(e.stdout, /simple\.schema\.json is valid/);
+	}
+});
+
+test("cli batch sast writes issues beside each input", async () => {
+	const dir = await mkdtemp(join(tmpdir(), "ajv-sast-"));
+	try {
+		const a = join(dir, "insecure.schema.json");
+		const b = join(dir, "large-enum-insecure.schema.json");
+		await copyFile(fixture("insecure.schema.json"), a);
+		await copyFile(fixture("large-enum-insecure.schema.json"), b);
+		await run("sast", a, b);
+		const written = await readdir(dir);
+		ok(written.includes("insecure.schema.sast.json"), "expected .sast.json");
+		ok(
+			written.includes("large-enum-insecure.schema.sast.json"),
+			"expected .sast.json for the second input",
+		);
+	} finally {
+		await rm(dir, { recursive: true, force: true });
+	}
+});
+
+test("cli batch ftl writes a bundle beside each input", async () => {
+	const dir = await mkdtemp(join(tmpdir(), "ajv-ftl-"));
+	try {
+		const a = join(dir, "one.ftl");
+		const b = join(dir, "two.ftl");
+		await copyFile(fixture("hello.ftl"), a);
+		await copyFile(fixture("hello.ftl"), b);
+		await run("ftl", a, b, "--locale", "en");
+		const written = await readdir(dir);
+		ok(written.includes("one.js"), "expected one.js");
+		ok(written.includes("two.js"), "expected two.js");
+	} finally {
+		await rm(dir, { recursive: true, force: true });
+	}
+});
+
+test("cli keeps stderr clean when a command reported its own failure", async () => {
+	// A CommandFailure has already printed to stdout, so the loop must not also
+	// echo its (empty) message — that would put a blank line on stderr.
+	try {
+		await run(fixture("simple.schema.json"), "--invalid");
+		throw new Error("Expected process to exit with non-zero code");
+	} catch (e) {
+		strictEqual(e.code, 1);
+		strictEqual(e.stderr, "");
+		match(e.stdout, /is valid, expected invalid/);
+	}
 });

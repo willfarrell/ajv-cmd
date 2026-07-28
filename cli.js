@@ -5,13 +5,62 @@
 
 import { createRequire } from "node:module";
 import { Command, Option } from "commander";
-import deref from "./commands/deref.js";
-import ftl from "./commands/ftl.js";
-import sast from "./commands/sast.js";
-import transpile from "./commands/transpile.js";
-import validate from "./commands/validate.js";
 
 const { version } = createRequire(import.meta.url)("./package.json");
+
+// Run one command over every input, loading its module only once the action
+// actually fires. Statically importing all five made every invocation — `--help`
+// included — pay for all of them, and commands/sast.js alone costs ~220ms at
+// import time because sast-json-schema compiles five draft meta-schema
+// validators at module load.
+//
+// `suffix` is the extension a batch writes beside each input; commands with no
+// output file (validate) pass none.
+const lazy = (specifier, suffix) => async (inputs, options) => {
+	const { CommandFailure, expandInputs, mirrorOutput } = await import(
+		"./commands/_utils.js"
+	);
+	const run = (await import(specifier)).default;
+	const files = await expandInputs(inputs);
+	const batch = files.length > 1;
+
+	// One -o path cannot receive N outputs; a batch writes beside each input.
+	if (batch && typeof options.output === "string") {
+		throw new Error(
+			`--output takes a single input, received ${files.length}; omit it to write beside each input`,
+		);
+	}
+
+	let failed = false;
+	for (const file of files) {
+		try {
+			await run(
+				file,
+				batch && suffix
+					? { ...options, output: mirrorOutput(file, suffix) }
+					: options,
+			);
+		} catch (error) {
+			// A CommandFailure has already printed its own message; anything else
+			// (missing file, bad JSON, unresolved $ref) still needs reporting. Either
+			// way the run continues so one bad file cannot hide the rest.
+			if (!(error instanceof CommandFailure)) {
+				console.error(error.message);
+			}
+			failed = true;
+		}
+	}
+
+	if (failed) {
+		process.exit(1);
+	}
+};
+
+const validate = lazy("./commands/validate.js");
+const transpile = lazy("./commands/transpile.js", ".js");
+const deref = lazy("./commands/deref.js", ".deref.json");
+const sast = lazy("./commands/sast.js", ".sast.json");
+const ftl = lazy("./commands/ftl.js", ".js");
 
 // AJV options such as `strict` accept `true | false | "log"`. Commander passes
 // option arguments through as strings, so coerce the boolean-ish values to real
@@ -40,7 +89,10 @@ const program = new Command()
 
 program
 	.command("validate", { isDefault: true })
-	.argument("<input>", "Path to the JSON-Schema file to validate")
+	.argument(
+		"<input...>",
+		"Paths or glob patterns of JSON-Schema files to validate",
+	)
 	.addOption(new Option("--valid", "When not valid throw exit(1)").preset(true))
 	.addOption(
 		new Option("--invalid", "When not invalid throw exit(1)").preset(true),
@@ -102,7 +154,10 @@ program
 
 program
 	.command("transpile")
-	.argument("<input>", "Path to the JSON-Schema file to transpile")
+	.argument(
+		"<input...>",
+		"Paths or glob patterns of JSON-Schema files to transpile",
+	)
 	// Docs: https://ajv.js.org/packages/ajv-cli.html
 	.addOption(
 		new Option(
@@ -161,7 +216,10 @@ program
 
 program
 	.command("deref")
-	.argument("<input>", "Path to the JSON-Schema file to deref relative $ref")
+	.argument(
+		"<input...>",
+		"Paths or glob patterns of JSON-Schema files to deref relative $ref",
+	)
 	.addOption(
 		new Option(
 			"-r, --ref-schema-files <refSchemaFiles...>",
@@ -184,7 +242,10 @@ program
 
 program
 	.command("sast")
-	.argument("<input>", "Path to the JSON-Schema file to audit for security")
+	.argument(
+		"<input...>",
+		"Paths or glob patterns of JSON-Schema files to audit for security",
+	)
 	.addOption(
 		new Option(
 			"-r, --ref-schema-files <refSchemaFiles...>",
@@ -252,7 +313,7 @@ program
 
 program
 	.command("ftl")
-	.argument("<input>", "Path to the Fluent file to transpile")
+	.argument("<input...>", "Paths or glob patterns of Fluent files to transpile")
 	.requiredOption(
 		"--locale <locale...>",
 		"What locale(s) to be used. Multiple can be set to allow for fallback. i.e. en-CA",

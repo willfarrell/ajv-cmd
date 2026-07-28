@@ -4,7 +4,7 @@ import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import standaloneCode from "ajv/dist/standalone/index.js";
 import { build } from "esbuild";
-import { compile, instance } from "./compile.js";
+import { instance } from "./compile.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -57,8 +57,12 @@ const fixDraft2019FormatRequires = (code) => {
 export const transpile = async (schema, options = {}) => {
 	options = { ...defaultOptions, ...options };
 
+	// Compile on this very instance rather than via compile() — standaloneCode
+	// serialises `validate`'s scope values through `ajv.scope`, so the two must
+	// be the same instance. It also halves the work: instance() is ~6ms and
+	// dominates per-schema cost, and compile() would build a second one.
 	const ajv = instance(options);
-	const validate = compile(schema, options);
+	const validate = ajv.compile(schema);
 	const js = fixDraft2019FormatRequires(standaloneCode(ajv, validate));
 
 	// Build fully in memory: the standalone code goes in via stdin and the
@@ -68,12 +72,12 @@ export const transpile = async (schema, options = {}) => {
 	// package's own directory, which resolves the bare imports (ajv,
 	// @silverbucket/ajv-formats-draft2019) in flat and hoisted layouts alike.
 	const result = await build({
-		stdin: { contents: js, resolveDir: __dirname, loader: "js" },
+		// No `loader` — esbuild already defaults stdin to js.
+		stdin: { contents: js, resolveDir: __dirname },
 		platform: "node",
 		format: "esm",
 		bundle: true,
 		minify: true,
-		legalComments: "none",
 		write: false,
 	});
 

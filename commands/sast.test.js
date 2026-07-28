@@ -3,6 +3,7 @@ import { readFile, unlink, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import { CommandFailure } from "./_utils.js";
 import sastCmd from "./sast.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -55,12 +56,13 @@ test("cmd sast should return errors when output is true", async (t) => {
 	}
 });
 
-test("cmd sast should exit(1) with --fail when issues found", async (t) => {
+test("cmd sast should fail with --fail when issues found", async (t) => {
 	const _mockLog = t.mock.method(console, "log", () => {});
-	const mockExit = t.mock.method(process, "exit", () => {});
-	await sastCmd(fixture("insecure.schema.json"), { fail: true });
-	strictEqual(mockExit.mock.calls.length, 1);
-	strictEqual(mockExit.mock.calls[0].arguments[0], 1);
+	// Throws rather than exiting so a batch run can report every file.
+	await rejects(
+		() => sastCmd(fixture("insecure.schema.json"), { fail: true }),
+		CommandFailure,
+	);
 });
 
 test("cmd sast tolerates an empty -r list (no schemas to seed)", async (t) => {
