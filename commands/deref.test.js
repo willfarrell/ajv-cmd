@@ -83,31 +83,18 @@ test("cmd deref --offline does not fetch a remote $ref", async (t) => {
 	const fetchMock = t.mock.method(globalThis, "fetch", async () => {
 		throw new Error("network call attempted while offline");
 	});
-	await rejects(() =>
-		derefCmd(fixture("ref-external-main.schema.json"), { offline: true }),
+	// simple.schema.json has no `$id`, so the seeded resolver must decline the
+	// remote URL and let the next resolver (offlineGuard) claim it.
+	await rejects(
+		() =>
+			derefCmd(fixture("ref-external-main.schema.json"), {
+				offline: true,
+				refSchemaFiles: [fixture("simple.schema.json")],
+			}),
+		{ message: /offline: refusing to fetch remote \$ref https:/ },
 	);
 	// The HTTP resolver is disabled, so fetch must never be invoked.
 	strictEqual(fetchMock.mock.calls.length, 0);
-});
-
-test("cmd deref should fall back to real fetch for uncached URLs", async (t) => {
-	// simple.schema.json has no `$id`, so the cache is empty and the request for
-	// the external `$ref` falls through to the underlying fetch. Mock that fetch
-	// instead of hitting the network so the test is deterministic and offline.
-	const partSchema = await readFile(
-		fixture("ref-external-part.schema.json"),
-		"utf8",
-	);
-	const fetchMock = t.mock.method(globalThis, "fetch", async () => ({
-		status: 200,
-		body: true,
-		arrayBuffer: async () => new TextEncoder().encode(partSchema),
-	}));
-	t.mock.method(console, "log", () => {});
-	await derefCmd(fixture("ref-external-main.schema.json"), {
-		refSchemaFiles: [fixture("simple.schema.json")],
-	});
-	ok(fetchMock.mock.calls.length >= 1);
 });
 
 test("cmd deref should throw for non-existent file", async () => {
