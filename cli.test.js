@@ -369,6 +369,14 @@ const EXPECTED = {
 					desc: "Override the max properties limit (default 1024). Removes maxProperties errors when the property count is within this limit. Values <= 1024 are a no-op.",
 				},
 				{
+					flags: "--redos-timeout-ms <redosTimeoutMs>",
+					desc: "Per-pattern time budget for ReDoS analysis in ms (default 1000). A pattern that exceeds it is fail-closed as unsafe. Raise only for trusted first-party schemas.",
+				},
+				{
+					flags: "--redos-heap-budget-bytes <redosHeapBudgetBytes>",
+					desc: "Retained-heap budget for ReDoS analysis in bytes (default 134217728). Once exceeded the remaining patterns are not analyzed. Keep --max-old-space-size well above it.",
+				},
+				{
 					flags: "--ignore <ignore...>",
 					desc: "Suppress errors by `instancePath` or `instancePath:keyword` (exact match).",
 				},
