@@ -6,6 +6,7 @@
 		"command": "node --test --test-force-exit ./*.test.js ./commands/*.test.js"
 	},
 	"coverageAnalysis": "off",
+	"ignorePatterns": ["tsconfig.json"],
 	"mutate": [
 		"*.js",
 		"commands/*.js",

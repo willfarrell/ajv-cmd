@@ -275,6 +275,18 @@ program
 	)
 	.addOption(
 		new Option(
+			"--redos-timeout-ms <redosTimeoutMs>",
+			"Per-pattern time budget for ReDoS analysis in ms (default 1000). A pattern that exceeds it is fail-closed as unsafe. Raise only for trusted first-party schemas.",
+		).argParser(parseNumeric),
+	)
+	.addOption(
+		new Option(
+			"--redos-heap-budget-bytes <redosHeapBudgetBytes>",
+			"Retained-heap budget for ReDoS analysis in bytes (default 134217728). Once exceeded the remaining patterns are not analyzed. Keep --max-old-space-size well above it.",
+		).argParser(parseNumeric),
+	)
+	.addOption(
+		new Option(
 			"--ignore <ignore...>",
 			"Suppress errors by `instancePath` or `instancePath:keyword` (exact match).",
 		),
