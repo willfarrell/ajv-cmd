@@ -1,6 +1,6 @@
 {
 	"name": "ajv-cmd",
-	"version": "0.15.0",
+	"version": "0.16.0",
 	"description": "Deref, Validate, Transpile, and Test JSON-Schema (.json) files using ajv",
 	"type": "module",
 	"engines": {
@@ -118,7 +118,7 @@
 	},
 	"homepage": "https://github.com/willfarrell/ajv-cmd",
 	"dependencies": {
-		"@apidevtools/json-schema-ref-parser": "15.5.0",
+		"@apidevtools/json-schema-ref-parser": "15.5.1",
 		"@silverbucket/ajv-formats-draft2019": "1.6.5",
 		"ajv": "8.20.0",
 		"ajv-errors": "3.0.0",
@@ -127,25 +127,24 @@
 		"ajv-i18n": "4.2.0",
 		"ajv-keywords": "5.1.0",
 		"commander": "15.0.0",
-		"esbuild": "0.28.1",
-		"sast-json-schema": "0.6.0"
+		"esbuild": "0.28.2",
+		"sast-json-schema": "0.7.0"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "^2.5.3",
-		"@commitlint/cli": "^21.2.1",
-		"@commitlint/config-conventional": "^21.2.0",
-		"@stryker-mutator/core": "^9.6.1",
-		"fast-check": "^4.9.0",
-		"husky": "^9.1.7",
+		"@biomejs/biome": "^2.0.0",
+		"@commitlint/cli": "^21.0.0",
+		"@commitlint/config-conventional": "^21.0.0",
+		"@stryker-mutator/core": "^9.0.0",
+		"fast-check": "^4.0.0",
+		"husky": "^9.0.0",
 		"license-check-and-add": "4.0.5",
 		"patch-package": "^8.0.0",
-		"tinybench": "^6.0.2",
-		"tstyche": "^7.2.1",
-		"typescript": "6.0.3"
+		"tinybench": "^6.0.0",
+		"tstyche": "^7.0.0",
+		"typescript": "7.0.2"
 	},
 	"overrides": {
 		"brace-expansion": ">=5.0.8",
-		"js-yaml": "^4.2.0",
 		"qs": ">=6.15.2"
 	},
 	"devEngines": {
