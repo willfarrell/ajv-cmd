@@ -1,6 +1,6 @@
 {
 	"name": "ajv-cmd",
-	"version": "0.16.0",
+	"version": "0.16.1",
 	"description": "Deref, Validate, Transpile, and Test JSON-Schema (.json) files using ajv",
 	"type": "module",
 	"engines": {
@@ -118,7 +118,7 @@
 	},
 	"homepage": "https://github.com/willfarrell/ajv-cmd",
 	"dependencies": {
-		"@apidevtools/json-schema-ref-parser": "15.5.1",
+		"@apidevtools/json-schema-ref-parser": "16.0.0",
 		"@silverbucket/ajv-formats-draft2019": "1.6.5",
 		"ajv": "8.20.0",
 		"ajv-errors": "3.0.0",
@@ -128,13 +128,13 @@
 		"ajv-keywords": "5.1.0",
 		"commander": "15.0.0",
 		"esbuild": "0.28.2",
-		"sast-json-schema": "0.7.0"
+		"sast-json-schema": "0.7.1"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.0.0",
 		"@commitlint/cli": "^21.0.0",
 		"@commitlint/config-conventional": "^21.0.0",
-		"@stryker-mutator/core": "^9.0.0",
+		"@stryker-mutator/core": "^10.0.0",
 		"fast-check": "^4.0.0",
 		"husky": "^9.0.0",
 		"license-check-and-add": "4.0.5",
