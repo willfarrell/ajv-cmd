@@ -7,6 +7,6 @@
 		"node": ">=24"
 	},
 	"devDependencies": {
-		"lockfile-lint": "5.0.0"
+		"lockfile-lint": "5.0.1"
 	}
 }
