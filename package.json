@@ -1,6 +1,6 @@
 {
 	"name": "ajv-cmd",
-	"version": "0.16.1",
+	"version": "0.17.0",
 	"description": "Deref, Validate, Transpile, and Test JSON-Schema (.json) files using ajv",
 	"type": "module",
 	"engines": {
@@ -22,6 +22,8 @@
 		"deref.d.ts",
 		"ftl.js",
 		"ftl.d.ts",
+		"nested.js",
+		"nested.d.ts",
 		"transpile.js",
 		"transpile.d.ts",
 		"validate.js",
@@ -43,6 +45,10 @@
 		"./deref": {
 			"types": "./deref.d.ts",
 			"default": "./deref.js"
+		},
+		"./nested": {
+			"types": "./nested.d.ts",
+			"default": "./nested.js"
 		},
 		"./ftl": {
 			"types": "./ftl.d.ts",
@@ -96,8 +102,11 @@
 		"lint": "biome check --write --no-errors-on-unmatched",
 		"test:lint": "biome ci --no-errors-on-unmatched",
 		"test:lint:staged": "biome check --staged --no-errors-on-unmatched",
+		"release:staged": "npm whoami >/dev/null && npm stage list $(npm pkg get name | tr -d '\"') --json | jq -r '.[] | \"\\(.packageName)@\\(.version) \\(.actor) \\(.shasum)\"'",
+		"release:approve": "npm stage list $(npm pkg get name | tr -d '\"') --json | jq -r --arg v \"$npm_package_version\" '.[] | select(.version == $v) | .id' | xargs -n1 -o npm stage approve",
 		"release:license:add": "license-check-and-add add -f .license.config.json",
-		"release:license:remove": "license-check-and-add remove -f .license.config.json"
+		"release:license:remove": "license-check-and-add remove -f .license.config.json",
+		"release:tag": "git tag -s -m $npm_package_version $npm_package_version"
 	},
 	"repository": {
 		"type": "git",
@@ -118,7 +127,7 @@
 	},
 	"homepage": "https://github.com/willfarrell/ajv-cmd",
 	"dependencies": {
-		"@apidevtools/json-schema-ref-parser": "16.0.0",
+		"@apidevtools/json-schema-ref-parser": "16.0.2",
 		"@silverbucket/ajv-formats-draft2019": "1.6.5",
 		"ajv": "8.20.0",
 		"ajv-errors": "3.0.0",

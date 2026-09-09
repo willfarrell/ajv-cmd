@@ -5,6 +5,7 @@ import defaults, {
 	deref,
 	ftl,
 	instance,
+	nested,
 	transpile,
 	validate,
 } from "./index.js";
@@ -19,6 +20,10 @@ test("index should export compile function", () => {
 
 test("index should export deref function", () => {
 	ok(typeof deref === "function");
+});
+
+test("index should export nested function", () => {
+	ok(typeof nested === "function");
 });
 
 test("index should export transpile function", () => {
@@ -37,6 +42,7 @@ test("index default export should contain all functions", () => {
 	strictEqual(defaults.instance, instance);
 	strictEqual(defaults.compile, compile);
 	strictEqual(defaults.deref, deref);
+	strictEqual(defaults.nested, nested);
 	strictEqual(defaults.transpile, transpile);
 	strictEqual(defaults.validate, validate);
 	strictEqual(defaults.ftl, ftl);

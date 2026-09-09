@@ -6,12 +6,14 @@ import {
 } from "./compile.js";
 import derefImport from "./deref.js";
 import ftlImport from "./ftl.js";
+import nestedImport from "./nested.js";
 import transpileImport from "./transpile.js";
 import validateImport from "./validate.js";
 
 export const instance = instanceImport;
 export const compile = compileImport;
 export const deref = derefImport;
+export const nested = nestedImport;
 export const transpile = transpileImport;
 export const validate = validateImport;
 export const ftl = ftlImport;
@@ -21,6 +23,7 @@ export default {
 	compile,
 	deref,
 	ftl,
+	nested,
 	transpile,
 	validate,
 };

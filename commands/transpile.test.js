@@ -91,3 +91,19 @@ test("cmd transpile should throw for directory path", async () => {
 		message: /is not a file/,
 	});
 });
+
+test("cmd transpile should nest the schema when --nested is set", async (t) => {
+	const _mockLog = t.mock.method(console, "log", () => {});
+	const js = await transpileCmd(fixture("simple.schema.json"), {
+		output: true,
+		allErrors: true,
+		nested: "/body",
+	});
+	const { default: validate } = await import(
+		`data:text/javascript,${encodeURIComponent(js)}`
+	);
+	strictEqual(validate({ body: { name: "middy" } }), true);
+	// The nested wrapper makes the property required, so the bare payload that
+	// would have validated at the root is now rejected.
+	strictEqual(validate({ name: "middy" }), false);
+});

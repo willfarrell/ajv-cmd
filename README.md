@@ -64,10 +64,24 @@ Compile a schema to a standalone, dependency-free ESM validator module
 
 ```bash
 $ ajv transpile schema.json -o schema.js
+$ ajv transpile body.schema.json --nested /body -o body.js
 ```
 
-Takes the same compilation options as `validate`, plus `-o, --output <file>`
-(prints to stdout when omitted).
+Takes the same compilation options as `validate`, plus:
+
+| Option | Description |
+| --- | --- |
+| `-o, --output <file>` | Where to write the module (prints to stdout when omitted) |
+| `--nested <pointer>` | Compile the schema to validate at a JSON Pointer inside a wrapper |
+
+`--nested` lets one schema describe a payload and still validate it in place.
+`--nested /body` wraps the schema so it validates `{ "body": … }`, one required
+object level per pointer segment, and errors report the full path
+(`/body/name`). Useful when the payload is only reachable after another step has
+parsed it, so the wrapper is validated once and the payload once, with no
+duplicated schema. `$schema`, `$defs`, and `definitions` are hoisted to the new
+root so internal `#/$defs/...` refs keep resolving; a schema with an `$id` is
+its own base URI and is nested verbatim.
 
 ### `ajv deref <input>`
 
@@ -117,11 +131,12 @@ Every command is also exposed as a typed ESM module (TypeScript declarations
 included):
 
 ```js
-import { compile, deref, transpile, validate } from "ajv-cmd";
+import { compile, deref, nested, transpile, validate } from "ajv-cmd";
 
 const { valid, errors } = await validate(schema, { testData: [data] });
 const js = await transpile(schema, { coerceTypes: "array" });
 const bundled = await deref(schema, { offline: true, schemas: [shared] });
+const wrapped = nested("/body", schema); // schema -> { body: schema }
 ```
 
 `validate()` returns `{ valid, errors }` — `valid` is `true`/`false` for data
@@ -149,6 +164,10 @@ function bundle {
 	--strict true --coerce-types array --all-errors true --use-defaults empty \
 	-o ${1%.json}.js
 }
+
+# A payload schema compiled to validate in place, inside the document that
+# carries it:
+# ajv transpile handlers/user/schema.body.json --nested /body -o handlers/user/schema.body.js
 
 for file in handlers/*/schema.*.json; do
   if [ ! -n "$(bundle $file | grep ' is valid')" ]; then

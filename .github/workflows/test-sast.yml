@@ -22,12 +22,24 @@ jobs:
   trivy-vuln:
     name: "Trivy: SCA"
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
-          egress-policy: audit
+          egress-policy: block
+          disable-sudo: true
           disable-telemetry: true
+          allowed-endpoints: >
+            api.github.com:443
+            check.trivy.dev:443
+            get.trivy.dev:443
+            ghcr.io:443
+            github.com:443
+            mirror.gcr.io:443
+            objects.githubusercontent.com:443
+            pkg-containers.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -46,13 +58,27 @@ jobs:
   trivy-license:
     name: "Trivy: Licensing"
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     if: (github.actor != 'dependabot[bot]')
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
-          egress-policy: audit
+          egress-policy: block
+          disable-sudo: true
           disable-telemetry: true
+          allowed-endpoints: >
+            api.github.com:443
+            check.trivy.dev:443
+            get.trivy.dev:443
+            ghcr.io:443
+            github.com:443
+            mirror.gcr.io:443
+            nodejs.org:443
+            objects.githubusercontent.com:443
+            pkg-containers.githubusercontent.com:443
+            registry.npmjs.org:443
+            release-assets.githubusercontent.com:443
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -79,13 +105,22 @@ jobs:
   license:
     name: "License headers"
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     if: (github.actor != 'dependabot[bot]')
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
-          egress-policy: audit
+          egress-policy: block
+          disable-sudo: true
           disable-telemetry: true
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            nodejs.org:443
+            objects.githubusercontent.com:443
+            registry.npmjs.org:443
+            release-assets.githubusercontent.com:443
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -106,12 +141,21 @@ jobs:
   lockfile:
     name: "lockfile-lint: SAST package-lock.json"
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
-          egress-policy: audit
+          egress-policy: block
+          disable-sudo: true
           disable-telemetry: true
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            nodejs.org:443
+            objects.githubusercontent.com:443
+            registry.npmjs.org:443
+            release-assets.githubusercontent.com:443
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -132,6 +176,7 @@ jobs:
   codeql:
     name: 'CodeQL: SAST'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       actions: read
       contents: read
@@ -144,27 +189,35 @@ jobs:
       - name: Harden runner
         uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
-          egress-policy: audit
+          egress-policy: block
+          disable-sudo: true
           disable-telemetry: true
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
+            uploads.github.com:443
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v2.27.7
+        uses: github/codeql-action/init@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
         with:
           languages: ${{ matrix.language }}
           queries: +security-and-quality
       - name: Autobuild
-        uses: github/codeql-action/autobuild@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v2.27.7
+        uses: github/codeql-action/autobuild@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v2.27.7
+        uses: github/codeql-action/analyze@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
         with:
           category: '/language:${{ matrix.language }}'
 
   semgrep:
     name: 'semgrep: SAST'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     container:
       image: semgrep/semgrep@sha256:3e6e5065d9e68abffddffdb536a8db2d79a8fa92dc424daa48d3a4b7d9bc65d0 # v1.111.0
     if: (github.actor != 'dependabot[bot]')
@@ -181,23 +234,33 @@ jobs:
   actionlint:
     name: "actionlint: GitHub Actions lint"
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
-          egress-policy: audit
+          egress-policy: block
+          disable-sudo: true
           disable-telemetry: true
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: actionlint
         uses: raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7 # v2.2.0
+        with:
+          pyflakes: false # no python in workflows; avoids a PyPI download under blocked egress
 
   # https://github.com/zizmorcore/zizmor-action
   zizmor:
     name: "zizmor: GitHub Actions SAST"
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read
       actions: read
@@ -206,8 +269,14 @@ jobs:
       - name: Harden runner
         uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
-          egress-policy: audit
+          egress-policy: block
+          disable-sudo: true
           disable-telemetry: true
+          allowed-endpoints: >
+            api.github.com:443
+            ghcr.io:443
+            github.com:443
+            pkg-containers.githubusercontent.com:443
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -215,16 +284,50 @@ jobs:
       - name: zizmor
         uses: zizmorcore/zizmor-action@3dc1ecc9bcb9e94e9b2c709687979e1298497054 # v0.6.2
 
+  # https://github.com/actions/dependency-review-action
+  dependency-review:
+    name: "Dependency Review"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        with:
+          egress-policy: block
+          disable-sudo: true
+          disable-telemetry: true
+          allowed-endpoints: >
+            github.com:443
+            api.github.com:443
+            objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
+            api.deps.dev:443
+            api.securityscorecards.dev:443
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Dependency review
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          fail-on-severity: high
+
   # https://github.com/trufflesecurity/trufflehog
   trufflehog:
     name: 'TruffleHog: secrets'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     if: (github.actor != 'dependabot[bot]')
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
+          # audit is deliberate: TruffleHog verifies candidate secrets against each
+          # issuing provider's real API, so egress is data-dependent; block mode
+          # would make verification fail and --only-verified silently drop findings
           egress-policy: audit
+          disable-sudo: true
           disable-telemetry: true
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -232,7 +335,7 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
       - name: TruffleHog
-        uses: trufflesecurity/trufflehog@bcfcf73aaf4759d4dadc2783177c245a02792318 # v3.97.0
+        uses: trufflesecurity/trufflehog@20652fbbdefffcdaa493a5bf57ab2ac6b1db715b # v3.97.1
         with:
           extra_args: --only-verified --results=verified,unknown
 
@@ -240,13 +343,20 @@ jobs:
   gitleaks:
     name: 'gitleaks: secrets'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     if: (github.actor != 'dependabot[bot]')
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
-          egress-policy: audit
+          egress-policy: block
+          disable-sudo: true
           disable-telemetry: true
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
