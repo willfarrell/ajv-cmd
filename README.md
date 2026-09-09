@@ -79,9 +79,9 @@ Takes the same compilation options as `validate`, plus:
 object level per pointer segment, and errors report the full path
 (`/body/name`). Useful when the payload is only reachable after another step has
 parsed it, so the wrapper is validated once and the payload once, with no
-duplicated schema. `$schema`, `$defs`, and `definitions` are hoisted to the new
-root so internal `#/$defs/...` refs keep resolving; a schema with an `$id` is
-its own base URI and is nested verbatim.
+duplicated schema. A schema without an `$id` is given one, so its `#`-relative
+references (`#/$defs/...`, a recursive `$ref: "#"`) keep resolving against the
+schema itself rather than the wrapper.
 
 ### `ajv deref <input>`
 
