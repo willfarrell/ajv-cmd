@@ -43,3 +43,35 @@ bundle() {
 }
 
 bundle ./__test__/formats.schema.json
+
+# --nested: the same schema compiled to validate at /body inside a wrapper.
+nested() {
+  local schema="./__test__/simple.schema.json"
+  local out="./__test__/simple.nested.js"
+
+  echo "transpile ${schema} --nested /body"
+  node cli.js transpile "${schema}" --nested /body -o "${out}"
+
+  node --input-type=module -e "
+    import validate from '${out}';
+    if (validate({ body: { name: 'middy' } }) !== true) {
+      console.error('FAIL: expected the nested payload to validate');
+      process.exit(1);
+    }
+    // The wrapper property is required, so the un-nested payload must fail.
+    if (validate({ name: 'middy' }) !== false) {
+      console.error('FAIL: expected the un-nested payload to be rejected');
+      process.exit(1);
+    }
+    validate({ body: { name: 1 } });
+    if (validate.errors[0].instancePath !== '/body/name') {
+      console.error('FAIL: expected errors to report the nested instancePath');
+      process.exit(1);
+    }
+    console.log('nested ok');
+  "
+
+  rm -f "${out}"
+}
+
+nested

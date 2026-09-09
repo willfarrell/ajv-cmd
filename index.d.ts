@@ -7,16 +7,18 @@
 import { compile, instance } from "./compile.js";
 import deref from "./deref.js";
 import ftl from "./ftl.js";
+import nested from "./nested.js";
 import transpile from "./transpile.js";
 import validate from "./validate.js";
 
-export { compile, deref, ftl, instance, transpile, validate };
+export { compile, deref, ftl, instance, nested, transpile, validate };
 
 declare const _default: {
 	instance: typeof instance;
 	compile: typeof compile;
 	deref: typeof deref;
 	ftl: typeof ftl;
+	nested: typeof nested;
 	transpile: typeof transpile;
 	validate: typeof validate;
 };

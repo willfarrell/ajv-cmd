@@ -7,6 +7,7 @@ import ajvCmd, {
 	deref,
 	ftl,
 	instance,
+	nested,
 	transpile,
 	validate,
 } from "./index.js";
@@ -27,6 +28,11 @@ describe("ajv-cmd", () => {
 	test("deref is a function", () => {
 		// biome-ignore lint/complexity/noBannedTypes: intentional generic function type check
 		expect(deref).type.toBeAssignableTo<Function>();
+	});
+
+	test("nested is a function", () => {
+		// biome-ignore lint/complexity/noBannedTypes: intentional generic function type check
+		expect(nested).type.toBeAssignableTo<Function>();
 	});
 
 	test("transpile is a function", () => {
@@ -58,6 +64,10 @@ describe("ajv-cmd", () => {
 		expect<ValidateResult["errors"]>().type.toBe<Array<ErrorObject | Error>>();
 	});
 
+	test("nested returns a schema object", () => {
+		expect(nested("/body", { type: "object" })).type.toBe<object>();
+	});
+
 	test("transpile resolves to the emitted JavaScript source", () => {
 		expect(transpile({ type: "object" })).type.toBe<Promise<string>>();
 	});
@@ -72,6 +82,7 @@ describe("ajv-cmd", () => {
 			compile: typeof compile;
 			deref: typeof deref;
 			ftl: typeof ftl;
+			nested: typeof nested;
 			transpile: typeof transpile;
 			validate: typeof validate;
 		}>();

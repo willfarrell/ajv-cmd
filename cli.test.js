@@ -323,6 +323,10 @@ const EXPECTED = {
 					flags: "--loop-enum <loopEnum>",
 					desc: "max size of enum to compile to expression (rather than to loop)",
 				},
+				{
+					flags: "--nested <pointer>",
+					desc: "JSON Pointer to nest the schema at before compiling, e.g. /body. Each segment becomes a required object property.",
+				},
 				{ flags: "-o, --output <output>", desc: OUTPUT_JS_DESC },
 			],
 		},

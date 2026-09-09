@@ -208,6 +208,12 @@ program
 	)
 	.addOption(
 		new Option(
+			"--nested <pointer>",
+			"JSON Pointer to nest the schema at before compiling, e.g. /body. Each segment becomes a required object property.",
+		),
+	)
+	.addOption(
+		new Option(
 			"-o, --output <output>",
 			"Path to store the resulting JavaScript file. Will be in ESM.",
 		),
