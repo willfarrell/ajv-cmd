@@ -14,27 +14,18 @@ export const nested = (pointer, schema) => {
 		.split("/")
 		.map((key) => key.replaceAll("~1", "/").replaceAll("~0", "~"));
 
-	// Definition keywords are addressed from the schema root (`#/$defs/...`), so
-	// they have to travel with the schema when it moves down the tree. An `$id`
-	// is the exception: it makes the schema its own base URI, so those refs keep
-	// resolving wherever it lands and hoisting would break them instead.
-	const { $schema, $defs, definitions, ...rest } = schema;
-	const root = schema.$id ? {} : { $schema, $defs, definitions };
+	const inner =
+		typeof schema === "object" && schema !== null && !schema.$id
+			? { ...schema, $id: `ajv-cmd:nested:${pointer}` }
+			: schema;
 
-	return Object.assign(
-		// A schema that carries none of them must not gain `"$defs": undefined`,
-		// which AJV's strict mode rejects as an unknown keyword.
-		Object.fromEntries(
-			Object.entries(root).filter(([, value]) => typeof value !== "undefined"),
-		),
-		keys.reduceRight(
-			(inner, key) => ({
-				type: "object",
-				required: [key],
-				properties: { [key]: inner },
-			}),
-			schema.$id ? schema : rest,
-		),
+	return keys.reduceRight(
+		(subschema, key) => ({
+			type: "object",
+			required: [key],
+			properties: { [key]: subschema },
+		}),
+		inner,
 	);
 };
 

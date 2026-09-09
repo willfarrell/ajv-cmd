@@ -160,8 +160,11 @@ jobs:
             api.github.com:443
             fulcio.sigstore.dev:443
             github.com:443
+            nodejs.org:443
+            objects.githubusercontent.com:443
             registry.npmjs.org:443
             rekor.sigstore.dev:443
+            release-assets.githubusercontent.com:443
             tuf-repo-cdn.sigstore.dev:443
             tmaproduction.blob.core.windows.net:443
       - name: Setup Node.js ${{ env.NODE_VERSION }}
