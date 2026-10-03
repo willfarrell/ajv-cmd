@@ -1,176 +1,175 @@
 {
-	"name": "ajv-cmd",
-	"version": "0.17.1",
-	"description": "Deref, Validate, Transpile, and Test JSON-Schema (.json) files using ajv",
-	"type": "module",
-	"engines": {
-		"node": ">=24.2.0"
-	},
-	"bin": {
-		"ajv": "cli.js",
-		"ajv-cmd": "cli.js"
-	},
-	"files": [
-		"cli.js",
-		"commands/*.js",
-		"!commands/*.test.js",
-		"index.js",
-		"index.d.ts",
-		"compile.js",
-		"compile.d.ts",
-		"deref.js",
-		"deref.d.ts",
-		"ftl.js",
-		"ftl.d.ts",
-		"nested.js",
-		"nested.d.ts",
-		"transpile.js",
-		"transpile.d.ts",
-		"validate.js",
-		"validate.d.ts",
-		"sast.js",
-		"sast.d.ts"
-	],
-	"main": "index.js",
-	"types": "./index.d.ts",
-	"exports": {
-		".": {
-			"types": "./index.d.ts",
-			"default": "./index.js"
-		},
-		"./compile": {
-			"types": "./compile.d.ts",
-			"default": "./compile.js"
-		},
-		"./deref": {
-			"types": "./deref.d.ts",
-			"default": "./deref.js"
-		},
-		"./nested": {
-			"types": "./nested.d.ts",
-			"default": "./nested.js"
-		},
-		"./ftl": {
-			"types": "./ftl.d.ts",
-			"default": "./ftl.js"
-		},
-		"./sast": {
-			"types": "./sast.d.ts",
-			"default": "./sast.js"
-		},
-		"./transpile": {
-			"types": "./transpile.d.ts",
-			"default": "./transpile.js"
-		},
-		"./validate": {
-			"types": "./validate.d.ts",
-			"default": "./validate.js"
-		}
-	},
-	"scripts": {
-		"prepare": "husky || true",
-		"postinstall": "patch-package || true",
-		"test": "npm run test:lint && npm run test:unit && npm run test:mutation && npm run test:e2e && npm run test:types && npm run test:sast && npm run test:perf && npm run test:dast",
-		"test:unit": "node --test --experimental-test-coverage --test-coverage-lines=100 --test-coverage-branches=100 --test-coverage-functions=100 ./*.test.js ./commands/*.test.js",
-		"test:mutation": "stryker run",
-		"test:e2e": "./__test__/e2e.sh",
-		"test:sast": "npm run test:sast:license && npm run test:sast:lockfile && npm run test:sast:semgrep && npm run test:sast:trufflehog && npm run test:sast:gitleaks && npm run test:sast:actionlint && npm run test:sast:zizmor && npm run test:sast:trivy",
-		"test:sast:actionlint": "actionlint",
-		"test:sast:gitleaks": "npm run test:sast:gitleaks:dir && npm run test:sast:gitleaks:git",
-		"test:sast:gitleaks:dir": "gitleaks dir . --redact --no-banner",
-		"test:sast:gitleaks:git": "gitleaks git . --redact --no-banner",
-		"test:sast:license": "license-check-and-add check -f .license.config.json",
-		"test:sast:lockfile": "lockfile-lint --path package-lock.json --type npm --allowed-hosts npm --validate-https",
-		"test:sast:semgrep": "semgrep scan --config auto --error",
-		"test:sast:trivy": "trivy fs --scanners vuln,license --include-dev-deps --ignored-licenses 0BSD,Apache-2.0,BSD-1-Clause,BSD-2-Clause,BSD-3-Clause,CC0-1.0,CC-BY-4.0,ISC,MIT,Python-2.0,LGPL-3.0-or-later,MPL-2.0,BlueOak-1.0.0,Unlicense --exit-code 1 --skip-files '**/bun.lock' --disable-telemetry .",
-		"test:sast:trufflehog": "trufflehog filesystem --only-verified --log-level=-1 ./",
-		"test:sast:zizmor": "zizmor .github",
-		"test:types": "tstyche",
-		"test:perf": "node --test --test-concurrency=1 ./*.perf.js",
-		"test:dast": "npm run test:dast:fuzz",
-		"test:dast:fuzz": "node --test ./*.fuzz.js",
-		"rm": "npm run rm:macos && npm run rm:node_modules && npm run rm:lock",
-		"rm:macos": "find . -name '.DS_Store' -type f -delete",
-		"rm:lock": "find . -name 'package-lock.json' -type f -delete",
-		"rm:node_modules": "find . -name 'node_modules' -type d -prune -exec rm -rf '{}' +",
-		"test:coverage": "node --test --experimental-test-coverage ./*.test.js ./commands/*.test.js",
-		"git:pre-commit": "npm run git:lint-staged && npm run git:test-staged",
-		"git:commit-msg": "commitlint --config commitlint.config.cjs --edit",
-		"git:lint-staged": "npm run test:lint:staged",
-		"git:unit-staged": "node --test",
-		"git:test-staged": "npm run git:unit-staged",
-		"lint": "biome check --write --no-errors-on-unmatched",
-		"test:lint": "biome ci --no-errors-on-unmatched",
-		"test:lint:staged": "biome check --staged --no-errors-on-unmatched",
-		"release:staged": "npm whoami >/dev/null && npm stage list $(npm pkg get name | tr -d '\"') --json | jq -r '.[] | \"\\(.packageName)@\\(.version) \\(.actor) \\(.shasum)\"'",
-		"release:approve": "npm stage list $(npm pkg get name | tr -d '\"') --json | jq -r --arg v \"$npm_package_version\" '.[] | select(.version == $v) | .id' | xargs -n1 -o npm stage approve",
-		"release:license:add": "license-check-and-add add -f .license.config.json",
-		"release:license:remove": "license-check-and-add remove -f .license.config.json",
-		"release:tag": "git tag -s -m $npm_package_version $npm_package_version"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/willfarrell/ajv-cmd.git"
-	},
-	"keywords": [
-		"json",
-		"schema",
-		"json-schema",
-		"ajv",
-		"compiler",
-		"transpiler"
-	],
-	"author": "willfarrell",
-	"license": "MIT",
-	"bugs": {
-		"url": "https://github.com/willfarrell/ajv-cmd/issues"
-	},
-	"homepage": "https://github.com/willfarrell/ajv-cmd",
-	"dependencies": {
-		"@apidevtools/json-schema-ref-parser": "16.0.2",
-		"@silverbucket/ajv-formats-draft2019": "1.6.5",
-		"ajv": "8.20.0",
-		"ajv-errors": "3.0.0",
-		"ajv-formats": "3.0.1",
-		"ajv-ftl-i18n": "0.3.0",
-		"ajv-i18n": "4.2.0",
-		"ajv-keywords": "5.1.0",
-		"commander": "15.0.0",
-		"esbuild": "0.28.2",
-		"sast-json-schema": "0.7.1"
-	},
-	"devDependencies": {
-		"@biomejs/biome": "^2.0.0",
-		"@commitlint/cli": "^21.0.0",
-		"@commitlint/config-conventional": "^21.0.0",
-		"@stryker-mutator/core": "^10.0.0",
-		"fast-check": "^4.0.0",
-		"husky": "^9.0.0",
-		"license-check-and-add": "4.0.5",
-		"patch-package": "^8.0.0",
-		"tinybench": "^6.0.0",
-		"tstyche": "^7.0.0",
-		"typescript": "7.0.2"
-	},
-	"overrides": {
-		"brace-expansion": ">=5.0.8",
-		"qs": ">=6.15.2"
-	},
-	"devEngines": {
-		"runtime": {
-			"name": "node",
-			"onFail": "error"
-		},
-		"packageManager": {
-			"name": "npm",
-			"onFail": "error"
-		}
-	},
-	"funding": {
-		"type": "github",
-		"url": "https://github.com/sponsors/willfarrell"
-	},
-	"workspaces": [
-		".github"
-	]
+  "name": "ajv-cmd",
+  "version": "0.17.1",
+  "description": "Deref, Validate, Transpile, and Test JSON-Schema (.json) files using ajv",
+  "type": "module",
+  "engines": {
+    "node": ">=24.2.0"
+  },
+  "bin": {
+    "ajv": "cli.js",
+    "ajv-cmd": "cli.js"
+  },
+  "files": [
+    "cli.js",
+    "commands/*.js",
+    "!commands/*.test.js",
+    "index.js",
+    "index.d.ts",
+    "compile.js",
+    "compile.d.ts",
+    "deref.js",
+    "deref.d.ts",
+    "ftl.js",
+    "ftl.d.ts",
+    "nested.js",
+    "nested.d.ts",
+    "transpile.js",
+    "transpile.d.ts",
+    "validate.js",
+    "validate.d.ts",
+    "sast.js",
+    "sast.d.ts"
+  ],
+  "main": "index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    },
+    "./compile": {
+      "types": "./compile.d.ts",
+      "default": "./compile.js"
+    },
+    "./deref": {
+      "types": "./deref.d.ts",
+      "default": "./deref.js"
+    },
+    "./nested": {
+      "types": "./nested.d.ts",
+      "default": "./nested.js"
+    },
+    "./ftl": {
+      "types": "./ftl.d.ts",
+      "default": "./ftl.js"
+    },
+    "./sast": {
+      "types": "./sast.d.ts",
+      "default": "./sast.js"
+    },
+    "./transpile": {
+      "types": "./transpile.d.ts",
+      "default": "./transpile.js"
+    },
+    "./validate": {
+      "types": "./validate.d.ts",
+      "default": "./validate.js"
+    }
+  },
+  "scripts": {
+    "prepare": "husky || true",
+    "postinstall": "patch-package || true",
+    "test": "npm run test:lint && npm run test:unit && npm run test:mutation && npm run test:e2e && npm run test:types && npm run test:sast && npm run test:perf && npm run test:dast",
+    "test:unit": "node --test --experimental-test-coverage --test-coverage-lines=100 --test-coverage-branches=100 --test-coverage-functions=100 ./*.test.js ./commands/*.test.js",
+    "test:mutation": "stryker run",
+    "test:e2e": "./__test__/e2e.sh",
+    "test:sast": "npm run test:sast:license && npm run test:sast:lockfile && npm run test:sast:semgrep && npm run test:sast:trufflehog && npm run test:sast:gitleaks && npm run test:sast:actionlint && npm run test:sast:zizmor && npm run test:sast:trivy",
+    "test:sast:actionlint": "actionlint",
+    "test:sast:gitleaks": "npm run test:sast:gitleaks:dir && npm run test:sast:gitleaks:git",
+    "test:sast:gitleaks:dir": "gitleaks dir . --redact --no-banner",
+    "test:sast:gitleaks:git": "gitleaks git . --redact --no-banner",
+    "test:sast:license": "license-check-and-add check -f .license.config.json",
+    "test:sast:lockfile": "lockfile-lint --path package-lock.json --type npm --allowed-hosts npm --validate-https",
+    "test:sast:semgrep": "semgrep scan --config auto --error",
+    "test:sast:trivy": "trivy fs --scanners vuln,license --include-dev-deps --ignored-licenses 0BSD,Apache-2.0,BSD-1-Clause,BSD-2-Clause,BSD-3-Clause,CC0-1.0,CC-BY-4.0,ISC,MIT,Python-2.0,LGPL-3.0-or-later,MPL-2.0,BlueOak-1.0.0,Unlicense --exit-code 1 --skip-files '**/bun.lock' --disable-telemetry .",
+    "test:sast:trufflehog": "trufflehog filesystem --only-verified --log-level=-1 ./",
+    "test:sast:zizmor": "zizmor .github",
+    "test:types": "tstyche",
+    "test:perf": "node --test --test-concurrency=1 ./*.perf.js",
+    "test:dast": "npm run test:dast:fuzz",
+    "test:dast:fuzz": "node --test ./*.fuzz.js",
+    "rm": "npm run rm:macos && npm run rm:node_modules && npm run rm:lock",
+    "rm:macos": "find . -name '.DS_Store' -type f -delete",
+    "rm:lock": "find . -name 'package-lock.json' -type f -delete",
+    "rm:node_modules": "find . -name 'node_modules' -type d -prune -exec rm -rf '{}' +",
+    "test:coverage": "node --test --experimental-test-coverage ./*.test.js ./commands/*.test.js",
+    "git:pre-commit": "npm run git:lint-staged && npm run git:test-staged",
+    "git:commit-msg": "commitlint --config commitlint.config.cjs --edit",
+    "git:lint-staged": "biome check --staged --no-errors-on-unmatched",
+    "git:unit-staged": "node --test",
+    "git:test-staged": "npm run git:unit-staged",
+    "lint": "biome check --write --no-errors-on-unmatched",
+    "test:lint": "biome ci --no-errors-on-unmatched",
+    "release:staged": "npm whoami >/dev/null && npm stage list $(npm pkg get name | tr -d '\"') --json | jq -r '.[] | \"\\(.packageName)@\\(.version) \\(.actor) \\(.shasum)\"'",
+    "release:approve": "npm stage list $(npm pkg get name | tr -d '\"') --json | jq -r --arg v \"$npm_package_version\" '.[] | select(.version == $v) | .id' | xargs -n1 -o npm stage approve",
+    "release:license:add": "license-check-and-add add -f .license.config.json",
+    "release:license:remove": "license-check-and-add remove -f .license.config.json",
+    "release:tag": "git tag -s -m $npm_package_version $npm_package_version"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/willfarrell/ajv-cmd.git"
+  },
+  "keywords": [
+    "json",
+    "schema",
+    "json-schema",
+    "ajv",
+    "compiler",
+    "transpiler"
+  ],
+  "author": "willfarrell",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/willfarrell/ajv-cmd/issues"
+  },
+  "homepage": "https://github.com/willfarrell/ajv-cmd",
+  "dependencies": {
+    "@apidevtools/json-schema-ref-parser": "16.0.2",
+    "@silverbucket/ajv-formats-draft2019": "1.6.5",
+    "ajv": "8.20.0",
+    "ajv-errors": "3.0.0",
+    "ajv-formats": "3.0.1",
+    "ajv-ftl-i18n": "0.3.0",
+    "ajv-i18n": "4.2.0",
+    "ajv-keywords": "5.1.0",
+    "commander": "15.0.0",
+    "esbuild": "0.28.2",
+    "sast-json-schema": "0.7.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.0.0",
+    "@commitlint/cli": "^21.0.0",
+    "@commitlint/config-conventional": "^21.0.0",
+    "@stryker-mutator/core": "^10.0.0",
+    "fast-check": "^4.0.0",
+    "husky": "^9.0.0",
+    "license-check-and-add": "4.0.5",
+    "patch-package": "^8.0.0",
+    "tinybench": "^6.0.0",
+    "tstyche": "^7.0.0",
+    "typescript": "7.0.2"
+  },
+  "overrides": {
+    "brace-expansion": ">=5.0.8",
+    "qs": ">=6.15.2"
+  },
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "onFail": "error"
+    },
+    "packageManager": {
+      "name": "npm",
+      "onFail": "error"
+    }
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/willfarrell"
+  },
+  "workspaces": [
+    ".github"
+  ]
 }
