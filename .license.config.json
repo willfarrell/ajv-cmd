@@ -20,7 +20,7 @@
 		"**/.gitignore",
 		"**/.npmrc",
 		"**/*.fuzz.js",
-		"**/*.perf.js",
+		"**/*.bench.js",
 		"**/*.test.js",
 		"**/*.cjs",
 		"**/*.md",

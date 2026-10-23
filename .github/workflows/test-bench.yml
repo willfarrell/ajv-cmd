@@ -1,8 +1,6 @@
-name: Tests (perf)
+name: Tests (bench)
 
 on:
-  push:
-    branches: [main]
   pull_request:
   workflow_dispatch:
 
@@ -18,7 +16,7 @@ concurrency:
 
 jobs:
   unit:
-    name: Tests (perf)
+    name: Tests (bench)
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -68,4 +66,4 @@ jobs:
       #   registry.npmjs.org:443
       - name: Benchmarking tests
         run: |
-          npm run test:perf
+          npm run test:bench
