@@ -13,7 +13,7 @@
 		"!*.test.js",
 		"!commands/*.test.js",
 		"!*.fuzz.js",
-		"!*.perf.js",
+		"!*.bench.js",
 		"!*.config.js"
 	],
 	"reporters": ["progress", "clear-text"],
