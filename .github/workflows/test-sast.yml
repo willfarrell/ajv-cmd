@@ -1,11 +1,11 @@
-name: 'Test (sast)'
+name: "Test (sast)"
 
 on:
   push:
     branches: [main]
   pull_request:
   schedule:
-    - cron: '43 3 * * 5'
+    - cron: "43 3 * * 5"
   workflow_dispatch:
 
 env:
@@ -234,7 +234,7 @@ jobs:
           npx lockfile-lint --path package-lock.json --type npm --allowed-hosts npm --validate-https
 
   codeql:
-    name: 'CodeQL: SAST'
+    name: "CodeQL: SAST"
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -286,10 +286,10 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
         with:
-          category: '/language:${{ matrix.language }}'
+          category: "/language:${{ matrix.language }}"
 
   semgrep:
-    name: 'semgrep: SAST'
+    name: "semgrep: SAST"
     runs-on: ubuntu-latest
     timeout-minutes: 15
     container:
@@ -411,7 +411,7 @@ jobs:
 
   # https://github.com/trufflesecurity/trufflehog
   trufflehog:
-    name: 'TruffleHog: secrets'
+    name: "TruffleHog: secrets"
     runs-on: ubuntu-latest
     timeout-minutes: 15
     if: (github.actor != 'dependabot[bot]')
@@ -447,7 +447,7 @@ jobs:
 
   # https://github.com/gitleaks/gitleaks-action
   gitleaks:
-    name: 'gitleaks: secrets'
+    name: "gitleaks: secrets"
     runs-on: ubuntu-latest
     timeout-minutes: 15
     if: (github.actor != 'dependabot[bot]')

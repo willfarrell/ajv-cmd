@@ -45,17 +45,17 @@ $ ajv validate schema.json --valid -d data.json
 $ ajv schema.json --valid    # validate is the default command
 ```
 
-| Option | Description |
-| --- | --- |
-| `-r, --ref-schema-files <files...>` | Schemas resolvable via `$ref` |
-| `-d, --test-data-files <files...>` | Data files to validate against the schema |
-| `--valid` / `--invalid` | Exit 1 unless the data is valid / invalid |
-| `--strict [mode]` | `true`/`false`/`log` |
-| `--use-defaults [mode]` | Replace missing properties/items from `default` (`true`/`false`/`empty`) |
-| `--coerce-types [mode]` | Change data types to match `type` (`true`/`false`/`array`) |
-| `--all-errors [bool]` | Report all errors instead of stopping at the first (default `true`) |
-| `--no-messages` | Exclude human-readable messages from errors |
-| `--loop-enum <n>` | Max enum size compiled to an expression rather than a loop |
+| Option                              | Description                                                              |
+| ----------------------------------- | ------------------------------------------------------------------------ |
+| `-r, --ref-schema-files <files...>` | Schemas resolvable via `$ref`                                            |
+| `-d, --test-data-files <files...>`  | Data files to validate against the schema                                |
+| `--valid` / `--invalid`             | Exit 1 unless the data is valid / invalid                                |
+| `--strict [mode]`                   | `true`/`false`/`log`                                                     |
+| `--use-defaults [mode]`             | Replace missing properties/items from `default` (`true`/`false`/`empty`) |
+| `--coerce-types [mode]`             | Change data types to match `type` (`true`/`false`/`array`)               |
+| `--all-errors [bool]`               | Report all errors instead of stopping at the first (default `true`)      |
+| `--no-messages`                     | Exclude human-readable messages from errors                              |
+| `--loop-enum <n>`                   | Max enum size compiled to an expression rather than a loop               |
 
 ### `ajv transpile <input>`
 
@@ -69,10 +69,10 @@ $ ajv transpile body.schema.json --nested /body -o body.js
 
 Takes the same compilation options as `validate`, plus:
 
-| Option | Description |
-| --- | --- |
-| `-o, --output <file>` | Where to write the module (prints to stdout when omitted) |
-| `--nested <pointer>` | Compile the schema to validate at a JSON Pointer inside a wrapper |
+| Option                | Description                                                       |
+| --------------------- | ----------------------------------------------------------------- |
+| `-o, --output <file>` | Where to write the module (prints to stdout when omitted)         |
+| `--nested <pointer>`  | Compile the schema to validate at a JSON Pointer inside a wrapper |
 
 `--nested` lets one schema describe a payload and still validate it in place.
 `--nested /body` wraps the schema so it validates `{ "body": … }`, one required
@@ -106,15 +106,15 @@ $ ajv sast schema.json --fail
 $ ajv sast schema.json --lang js --ignore '/properties/id:maxLength'
 ```
 
-| Option | Description |
-| --- | --- |
-| `-f, --fail` | Exit 1 when issues are found |
-| `--ignore <rules...>` | Suppress findings by `instancePath` or `instancePath:keyword` |
-| `--override-max-items <n>` / `--override-max-depth <n>` / `--override-max-properties <n>` | Relax the default limits |
-| `--offline` | Skip DNS lookups for remote `$ref` URLs |
-| `--dns-timeout-ms <n>` / `--dns-concurrency <n>` | Tune SSRF resolution |
-| `--lang <lang>` | Target language for deserialization-vector checks (default: union of all) |
-| `-o, --output <file>` | Write the JSON issues report to a file |
+| Option                                                                                    | Description                                                               |
+| ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `-f, --fail`                                                                              | Exit 1 when issues are found                                              |
+| `--ignore <rules...>`                                                                     | Suppress findings by `instancePath` or `instancePath:keyword`             |
+| `--override-max-items <n>` / `--override-max-depth <n>` / `--override-max-properties <n>` | Relax the default limits                                                  |
+| `--offline`                                                                               | Skip DNS lookups for remote `$ref` URLs                                   |
+| `--dns-timeout-ms <n>` / `--dns-concurrency <n>`                                          | Tune SSRF resolution                                                      |
+| `--lang <lang>`                                                                           | Target language for deserialization-vector checks (default: union of all) |
+| `-o, --output <file>`                                                                     | Write the JSON issues report to a file                                    |
 
 ### `ajv ftl <input>`
 
