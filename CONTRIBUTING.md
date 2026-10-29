@@ -14,7 +14,6 @@ npm test
 ## Committing
 
 Ensure git commits meet the following FLOSS Best Practices:
-
 - Message follows [Conventional Commits](https://www.conventionalcommits.org/) pattern. This is automatically enforced using `@commitlint/cli`.
 - Message includes sign off for [Developer Certificate of Origin (DCO)](https://developercertificate.org/) compliance. This is automatically enforced using GitHub Actions on Pull-Requests.
   1. `git config --global user.name "Your Name"` and `git config --global user.email username@example.org` setup with `--signoff` flag on `git commit`
