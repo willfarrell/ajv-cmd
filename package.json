@@ -131,12 +131,12 @@
 		"ajv": "8.20.0",
 		"ajv-errors": "3.0.0",
 		"ajv-formats": "3.0.1",
-		"ajv-ftl-i18n": "0.3.0",
+		"ajv-ftl-i18n": "0.3.2",
 		"ajv-i18n": "4.2.0",
 		"ajv-keywords": "5.1.0",
 		"commander": "15.0.0",
 		"esbuild": "0.28.2",
-		"sast-json-schema": "0.7.1"
+		"sast-json-schema": "0.7.2"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.0.0",
