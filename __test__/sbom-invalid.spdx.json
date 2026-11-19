@@ -1,0 +1,11 @@
+{
+	"spdxVersion": "SPDX-2.3",
+	"dataLicense": "CC0-1.0",
+	"SPDXID": "SPDXRef-DOCUMENT",
+	"name": 1,
+	"documentNamespace": "https://example.com/spdxdocs/ajv-cmd",
+	"creationInfo": {
+		"created": "2026-01-01T00:00:00Z",
+		"creators": ["Tool: ajv-cmd"]
+	}
+}

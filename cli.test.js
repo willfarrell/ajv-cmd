@@ -210,6 +210,16 @@ test("cli ftl command emits an ESM module", async () => {
 	match(stdout, /export/);
 });
 
+test("cli sbom command exits 1 for an unsupported SBOM format", async () => {
+	try {
+		await run("sbom", fixture("simple.data.json"));
+		throw new Error("Expected process to exit with non-zero code");
+	} catch (e) {
+		strictEqual(e.code, 1);
+		match(e.stderr, /Unsupported SBOM format: no spdxVersion/);
+	}
+});
+
 test("cli missing input file errors cleanly without a stack trace", async () => {
 	try {
 		await run(fixture("nonexistent.json"), "--valid");
@@ -421,6 +431,13 @@ const EXPECTED = {
 				},
 				{ flags: "-o, --output <output>", desc: OUTPUT_JS_DESC },
 			],
+		},
+		sbom: {
+			arg: {
+				name: "input",
+				desc: "Paths or glob patterns of SBOM files to validate against their format's official schema",
+			},
+			options: [],
 		},
 	},
 };

@@ -45,17 +45,17 @@ $ ajv validate schema.json --valid -d data.json
 $ ajv schema.json --valid    # validate is the default command
 ```
 
-| Option | Description |
-| --- | --- |
-| `-r, --ref-schema-files <files...>` | Schemas resolvable via `$ref` |
-| `-d, --test-data-files <files...>` | Data files to validate against the schema |
-| `--valid` / `--invalid` | Exit 1 unless the data is valid / invalid |
-| `--strict [mode]` | `true`/`false`/`log` |
-| `--use-defaults [mode]` | Replace missing properties/items from `default` (`true`/`false`/`empty`) |
-| `--coerce-types [mode]` | Change data types to match `type` (`true`/`false`/`array`) |
-| `--all-errors [bool]` | Report all errors instead of stopping at the first (default `true`) |
-| `--no-messages` | Exclude human-readable messages from errors |
-| `--loop-enum <n>` | Max enum size compiled to an expression rather than a loop |
+| Option                              | Description                                                              |
+| ----------------------------------- | ------------------------------------------------------------------------ |
+| `-r, --ref-schema-files <files...>` | Schemas resolvable via `$ref`                                            |
+| `-d, --test-data-files <files...>`  | Data files to validate against the schema                                |
+| `--valid` / `--invalid`             | Exit 1 unless the data is valid / invalid                                |
+| `--strict [mode]`                   | `true`/`false`/`log`                                                     |
+| `--use-defaults [mode]`             | Replace missing properties/items from `default` (`true`/`false`/`empty`) |
+| `--coerce-types [mode]`             | Change data types to match `type` (`true`/`false`/`array`)               |
+| `--all-errors [bool]`               | Report all errors instead of stopping at the first (default `true`)      |
+| `--no-messages`                     | Exclude human-readable messages from errors                              |
+| `--loop-enum <n>`                   | Max enum size compiled to an expression rather than a loop               |
 
 ### `ajv transpile <input>`
 
@@ -69,10 +69,10 @@ $ ajv transpile body.schema.json --nested /body -o body.js
 
 Takes the same compilation options as `validate`, plus:
 
-| Option | Description |
-| --- | --- |
-| `-o, --output <file>` | Where to write the module (prints to stdout when omitted) |
-| `--nested <pointer>` | Compile the schema to validate at a JSON Pointer inside a wrapper |
+| Option                | Description                                                       |
+| --------------------- | ----------------------------------------------------------------- |
+| `-o, --output <file>` | Where to write the module (prints to stdout when omitted)         |
+| `--nested <pointer>`  | Compile the schema to validate at a JSON Pointer inside a wrapper |
 
 `--nested` lets one schema describe a payload and still validate it in place.
 `--nested /body` wraps the schema so it validates `{ "body": … }`, one required
@@ -106,15 +106,15 @@ $ ajv sast schema.json --fail
 $ ajv sast schema.json --lang js --ignore '/properties/id:maxLength'
 ```
 
-| Option | Description |
-| --- | --- |
-| `-f, --fail` | Exit 1 when issues are found |
-| `--ignore <rules...>` | Suppress findings by `instancePath` or `instancePath:keyword` |
-| `--override-max-items <n>` / `--override-max-depth <n>` / `--override-max-properties <n>` | Relax the default limits |
-| `--offline` | Skip DNS lookups for remote `$ref` URLs |
-| `--dns-timeout-ms <n>` / `--dns-concurrency <n>` | Tune SSRF resolution |
-| `--lang <lang>` | Target language for deserialization-vector checks (default: union of all) |
-| `-o, --output <file>` | Write the JSON issues report to a file |
+| Option                                                                                    | Description                                                               |
+| ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `-f, --fail`                                                                              | Exit 1 when issues are found                                              |
+| `--ignore <rules...>`                                                                     | Suppress findings by `instancePath` or `instancePath:keyword`             |
+| `--override-max-items <n>` / `--override-max-depth <n>` / `--override-max-properties <n>` | Relax the default limits                                                  |
+| `--offline`                                                                               | Skip DNS lookups for remote `$ref` URLs                                   |
+| `--dns-timeout-ms <n>` / `--dns-concurrency <n>`                                          | Tune SSRF resolution                                                      |
+| `--lang <lang>`                                                                           | Target language for deserialization-vector checks (default: union of all) |
+| `-o, --output <file>`                                                                     | Write the JSON issues report to a file                                    |
 
 ### `ajv ftl <input>`
 
@@ -125,15 +125,32 @@ an ESM module for use with custom `errorMessage` keywords.
 $ ajv ftl messages.ftl --locale en-CA en -o messages.js
 ```
 
+### `ajv sbom <input>`
+
+Validate a Software Bill of Materials against the official schema for its
+format. The format is detected from the document, and the schema is downloaded
+at run time from a pinned, immutable URL. Exits non-zero when the format is
+unsupported, the schema download fails, or the document is invalid.
+
+```bash
+$ npm sbom --sbom-format spdx > sbom.spdx.json
+$ ajv sbom sbom.spdx.json
+```
+
+| Format   | Detected by                 | Schema                                                                                                                                           |
+| -------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| SPDX 2.3 | `"spdxVersion": "SPDX-2.3"` | [spdx-spec `v2.3`, draft-07](https://raw.githubusercontent.com/spdx/spdx-spec/aadf3b0b8dbbabdb4d880b0fc714255fea436ff7/schemas/spdx-schema.json) |
+
 ## Library API
 
 Every command is also exposed as a typed ESM module (TypeScript declarations
 included):
 
 ```js
-import { compile, deref, nested, transpile, validate } from "ajv-cmd";
+import { compile, deref, nested, sbom, transpile, validate } from "ajv-cmd";
 
 const { valid, errors } = await validate(schema, { testData: [data] });
+const spdx = await sbom(JSON.parse(await readFile("sbom.spdx.json")));
 const js = await transpile(schema, { coerceTypes: "array" });
 const bundled = await deref(schema, { offline: true, schemas: [shared] });
 const wrapped = nested("/body", schema); // schema -> { body: schema }
@@ -141,8 +158,11 @@ const wrapped = nested("/body", schema); // schema -> { body: schema }
 
 `validate()` returns `{ valid, errors }` — `valid` is `true`/`false` for data
 validation and `undefined` when the schema itself failed to compile; it never
-prints. The SAST analyzer uses top-level await, so it lives on its own subpath
-rather than the main barrel:
+prints. `sbom()` returns the same shape for a parsed SBOM document and rejects
+when the format is unsupported or the schema download fails. `compile()` picks
+the AJV dialect from a schema's `$schema`: draft-07 compiles with AJV's draft-07
+class, anything else with 2020-12. The SAST analyzer uses top-level await, so
+it lives on its own subpath rather than the main barrel:
 
 ```js
 import { analyze } from "ajv-cmd/sast";

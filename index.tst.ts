@@ -8,9 +8,11 @@ import ajvCmd, {
 	ftl,
 	instance,
 	nested,
+	sbom,
 	transpile,
 	validate,
 } from "./index.js";
+import type { SbomResult } from "./sbom.js";
 import type { ValidateResult } from "./validate.js";
 
 describe("ajv-cmd", () => {
@@ -64,6 +66,12 @@ describe("ajv-cmd", () => {
 		expect<ValidateResult["errors"]>().type.toBe<Array<ErrorObject | Error>>();
 	});
 
+	test("sbom resolves to a structured result", () => {
+		expect(sbom({ spdxVersion: "SPDX-2.3" })).type.toBe<Promise<SbomResult>>();
+		expect<SbomResult["valid"]>().type.toBe<boolean>();
+		expect<SbomResult["errors"]>().type.toBe<ErrorObject[]>();
+	});
+
 	test("nested returns a schema object", () => {
 		expect(nested("/body", { type: "object" })).type.toBe<object>();
 	});
@@ -85,6 +93,7 @@ describe("ajv-cmd", () => {
 			nested: typeof nested;
 			transpile: typeof transpile;
 			validate: typeof validate;
+			sbom: typeof sbom;
 		}>();
 	});
 });

@@ -83,6 +83,42 @@ test("compile should honor caller-supplied keywords", () => {
 	strictEqual(typeof validate, "function");
 });
 
+test("compile supports ajv-keywords keywords", () => {
+	// Strict mode rejects `uniqueItemProperties` as unknown unless the
+	// ajv-keywords plugin is registered.
+	const validate = compile({
+		type: "array",
+		uniqueItemProperties: ["id"],
+	});
+	strictEqual(validate([{ id: 1 }, { id: 1 }]), false);
+	strictEqual(validate([{ id: 1 }, { id: 2 }]), true);
+});
+
+test("compile uses the draft-07 dialect when $schema names draft-07", () => {
+	// Draft-07 `dependencies` (removed in 2020-12) is enforced only by the
+	// draft-07 class, and Ajv2020 rejects the draft-07 $schema outright.
+	const validate = compile({
+		$schema: "http://json-schema.org/draft-07/schema#",
+		dependencies: { a: ["b"] },
+	});
+	strictEqual(validate({ a: 1 }), false);
+	strictEqual(validate({ a: 1, b: 2 }), true);
+});
+
+test("compile keeps the 2020-12 dialect when $schema is absent", () => {
+	// `prefixItems` is a 2020-12 keyword; the draft-07 class would reject it as
+	// unknown under strict mode.
+	const validate = compile({
+		type: "array",
+		prefixItems: [{ type: "string" }],
+	});
+	strictEqual(validate([1]), false);
+});
+
+test("instance keeps returning the 2020-12 dialect", () => {
+	ok(instance().getSchema("https://json-schema.org/draft/2020-12/schema"));
+});
+
 test("compile default export should be compile function", async () => {
 	const mod = await import("./compile.js");
 	strictEqual(mod.default, mod.compile);

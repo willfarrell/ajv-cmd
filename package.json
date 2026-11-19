@@ -1,6 +1,6 @@
 {
 	"name": "ajv-cmd",
-	"version": "0.17.2",
+	"version": "0.18.0",
 	"description": "Deref, Validate, Transpile, and Test JSON-Schema (.json) files using ajv",
 	"type": "module",
 	"engines": {
@@ -24,6 +24,8 @@
 		"ftl.d.ts",
 		"nested.js",
 		"nested.d.ts",
+		"sbom.js",
+		"sbom.d.ts",
 		"transpile.js",
 		"transpile.d.ts",
 		"validate.js",
@@ -53,6 +55,10 @@
 		"./ftl": {
 			"types": "./ftl.d.ts",
 			"default": "./ftl.js"
+		},
+		"./sbom": {
+			"types": "./sbom.d.ts",
+			"default": "./sbom.js"
 		},
 		"./sast": {
 			"types": "./sast.d.ts",
@@ -96,12 +102,11 @@
 		"test:coverage": "node --test --experimental-test-coverage ./*.test.js ./commands/*.test.js",
 		"git:pre-commit": "npm run git:lint-staged && npm run git:test-staged",
 		"git:commit-msg": "commitlint --config commitlint.config.cjs --edit",
-		"git:lint-staged": "npm run test:lint:staged",
+		"git:lint-staged": "biome check --staged --no-errors-on-unmatched",
 		"git:unit-staged": "node --test",
 		"git:test-staged": "npm run git:unit-staged",
 		"lint": "biome check --write --no-errors-on-unmatched",
 		"test:lint": "biome ci --no-errors-on-unmatched",
-		"test:lint:staged": "biome check --staged --no-errors-on-unmatched",
 		"release:staged": "npm whoami >/dev/null && npm stage list $(npm pkg get name | tr -d '\"') --json | jq -r '.[] | \"\\(.packageName)@\\(.version) \\(.actor) \\(.shasum)\"'",
 		"release:approve": "npm stage list $(npm pkg get name | tr -d '\"') --json | jq -r --arg v \"$npm_package_version\" '.[] | select(.version == $v) | .id' | xargs -n1 -o npm stage approve",
 		"release:license:add": "node .github/license.mjs add",
@@ -127,17 +132,17 @@
 	},
 	"homepage": "https://github.com/willfarrell/ajv-cmd",
 	"dependencies": {
-		"@apidevtools/json-schema-ref-parser": "16.0.5",
+		"@apidevtools/json-schema-ref-parser": "16.0.8",
 		"@silverbucket/ajv-formats-draft2019": "1.6.5",
 		"ajv": "8.20.0",
 		"ajv-errors": "3.0.0",
 		"ajv-formats": "3.0.1",
-		"ajv-ftl-i18n": "0.3.0",
+		"ajv-ftl-i18n": "0.3.2",
 		"ajv-i18n": "4.2.0",
 		"ajv-keywords": "5.1.0",
-		"commander": "15.0.0",
+		"commander": "15.1.0",
 		"esbuild": "0.28.2",
-		"sast-json-schema": "0.7.1"
+		"sast-json-schema": "0.7.2"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.0.0",
@@ -148,9 +153,12 @@
 		"husky": "^9.0.0",
 		"patch-package": "^8.0.0",
 		"tstyche": "^7.0.0",
-		"typescript": "7.0.2"
+		"typescript": "^7.0.0"
 	},
 	"overrides": {
+		"@stryker-mutator/core": {
+			"minimatch": ">=11.0.1"
+		},
 		"brace-expansion": ">=5.0.8",
 		"qs": ">=6.15.2"
 	},
