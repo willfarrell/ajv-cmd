@@ -8,10 +8,11 @@ import { compile, instance } from "./compile.js";
 import deref from "./deref.js";
 import ftl from "./ftl.js";
 import nested from "./nested.js";
+import sbom from "./sbom.js";
 import transpile from "./transpile.js";
 import validate from "./validate.js";
 
-export { compile, deref, ftl, instance, nested, transpile, validate };
+export { compile, deref, ftl, instance, nested, sbom, transpile, validate };
 
 declare const _default: {
 	instance: typeof instance;
@@ -21,6 +22,7 @@ declare const _default: {
 	nested: typeof nested;
 	transpile: typeof transpile;
 	validate: typeof validate;
+	sbom: typeof sbom;
 };
 
 export default _default;

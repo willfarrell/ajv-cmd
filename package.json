@@ -24,6 +24,8 @@
 		"ftl.d.ts",
 		"nested.js",
 		"nested.d.ts",
+		"sbom.js",
+		"sbom.d.ts",
 		"transpile.js",
 		"transpile.d.ts",
 		"validate.js",
@@ -53,6 +55,10 @@
 		"./ftl": {
 			"types": "./ftl.d.ts",
 			"default": "./ftl.js"
+		},
+		"./sbom": {
+			"types": "./sbom.d.ts",
+			"default": "./sbom.js"
 		},
 		"./sast": {
 			"types": "./sast.d.ts",

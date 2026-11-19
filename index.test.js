@@ -6,6 +6,7 @@ import defaults, {
 	ftl,
 	instance,
 	nested,
+	sbom,
 	transpile,
 	validate,
 } from "./index.js";
@@ -34,6 +35,10 @@ test("index should export validate function", () => {
 	ok(typeof validate === "function");
 });
 
+test("index should export sbom function", () => {
+	ok(typeof sbom === "function");
+});
+
 test("index should export ftl function", () => {
 	ok(typeof ftl === "function");
 });
@@ -46,6 +51,7 @@ test("index default export should contain all functions", () => {
 	strictEqual(defaults.transpile, transpile);
 	strictEqual(defaults.validate, validate);
 	strictEqual(defaults.ftl, ftl);
+	strictEqual(defaults.sbom, sbom);
 });
 
 test("index does not export sast (ESM-only subpath, top-level await)", async () => {

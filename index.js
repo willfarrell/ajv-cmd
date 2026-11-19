@@ -7,6 +7,7 @@ import {
 import derefImport from "./deref.js";
 import ftlImport from "./ftl.js";
 import nestedImport from "./nested.js";
+import sbomImport from "./sbom.js";
 import transpileImport from "./transpile.js";
 import validateImport from "./validate.js";
 
@@ -17,6 +18,7 @@ export const nested = nestedImport;
 export const transpile = transpileImport;
 export const validate = validateImport;
 export const ftl = ftlImport;
+export const sbom = sbomImport;
 
 export default {
 	instance,
@@ -26,4 +28,5 @@ export default {
 	nested,
 	transpile,
 	validate,
+	sbom,
 };

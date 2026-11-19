@@ -15,7 +15,7 @@ const { version } = createRequire(import.meta.url)("./package.json");
 // validators at module load.
 //
 // `suffix` is the extension a batch writes beside each input; commands with no
-// output file (validate) pass none.
+// output file (validate, sbom) pass none.
 const lazy = (specifier, suffix) => async (inputs, options) => {
 	const { CommandFailure, expandInputs, mirrorOutput } = await import(
 		"./commands/_utils.js"
@@ -61,6 +61,7 @@ const transpile = lazy("./commands/transpile.js", ".js");
 const deref = lazy("./commands/deref.js", ".deref.json");
 const sast = lazy("./commands/sast.js", ".sast.json");
 const ftl = lazy("./commands/ftl.js", ".js");
+const sbom = lazy("./commands/sbom.js");
 
 // AJV options such as `strict` accept `true | false | "log"`. Commander passes
 // option arguments through as strings, so coerce the boolean-ish values to real
@@ -343,6 +344,14 @@ program
 		),
 	)
 	.action(ftl);
+
+program
+	.command("sbom")
+	.argument(
+		"<input...>",
+		"Paths or glob patterns of SBOM files to validate against their format's official schema",
+	)
+	.action(sbom);
 
 // Surface command errors (missing files, invalid JSON, unresolved $refs, …) as
 // a clean message + non-zero exit instead of an unhandled-rejection stack trace.
